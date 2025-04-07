@@ -9,9 +9,10 @@ Project developed for **INF01047 - Fundamentals for Graphic Computation** class 
 Here, you will find all information about the project, like tools, resources and decisions made. 
 
 # Summary
-- [📚 Documentation](..inside link)
-- [📹  Apresentation](..youtube?)
-- [▶ Running](..inside)
+- [📚 Documentation](https://github.com/jodavila/fungrap/edit/main/README.md#-Documentation)
+- [▶ Running](https://github.com/jodavila/fungrap/edit/main/README.md#-Running)
+- [📹  Apresentation](https://github.com/jodavila/fungrap/edit/main/README.md#-Apresentation)
+
 
 🗓️ 🔗🔍 ⚙️🔧🎨❗📚 
 
@@ -32,7 +33,7 @@ Lorem ipsum
 Lorem ipsum
 
 
-[🔝 Back to top](link para summary)
+[🔝 Back to top](https://github.com/jodavila/fungrap/edit/main/README.md#-Summary)
 
 ---
 
@@ -41,11 +42,11 @@ Lorem ipsum
 ## Topic 1
 Lorem ipsum
 
-[🔝 Back to top](link para summary)
+[🔝 Back to top](https://github.com/jodavila/fungrap/edit/main/README.md#-Summary)
 
 --- 
 # 📹 Apresentation
 - Youtube link
 - canvas link 
 
-[🔝 Back to top](link para summary)
+[🔝 Back to top](https://github.com/jodavila/fungrap/edit/main/README.md#-Summary)
