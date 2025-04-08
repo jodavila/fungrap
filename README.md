@@ -1,7 +1,7 @@
 
 # 💬  Members
 - Joana Davila - 00274739
-- Nicolas Chaves - 00000000
+- Nicolas Chaves - 00316035
 
 # 📝 About 
 Project developed for **INF01047 - Fundamentals for Graphic Computation** class with teacher Eduardo Gastal in 2025/1. The project apply the learned curriculum in a application coded by the members along the guidelines for this task.
