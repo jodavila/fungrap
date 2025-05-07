@@ -9,9 +9,9 @@ Project developed for **INF01047 - Fundamentals for Graphic Computation** class 
 Here, you will find all information about the project, like tools, resources and decisions made. 
 
 # Summary
-- [📚 Documentation](https://github.com/jodavila/fungrap/edit/main/README.md#-Documentation)
-- [▶ Running](https://github.com/jodavila/fungrap/edit/main/README.md#-Running)
-- [📹  Apresentation](https://github.com/jodavila/fungrap/edit/main/README.md#-Apresentation)
+- [📚 Documentation](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#-documentation)
+- [▶ Running](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#-running)
+- [📹  Apresentation](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#-apresentation)
 
 
 🗓️ 🔗🔍 ⚙️🔧🎨❗📚 
