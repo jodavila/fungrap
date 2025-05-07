@@ -20,8 +20,8 @@ Here, you will find all information about the project, like tools, resources and
 
 # 📚 Documentation
 
-## Topic 1
-Lorem ipsum
+## Project Definition: Mini Golf 3D Model
+Simple mini golf scenarios with grass, lakes, obstacles and ramps. The ball moves based on simple physics and Bézier trajectory. Collisions with walls, floor and hole entry detection. Add natural textures to the fields, lake and ball. For application of lights, in each part of the scenario. Two types of cameras: one fixed and one 'following the ball'.
 
 ## Topic 2
 Lorem ipsum
