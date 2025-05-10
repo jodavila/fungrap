@@ -273,7 +273,7 @@ int main() {
 
 
             int axis = 1.0f;
-
+            
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 
                 position += -w * speed * (float)(deltaTime * axis);

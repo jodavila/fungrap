@@ -45,8 +45,14 @@ Lorem ipsum
 
 # ▶ Running
 
-## Topic 1
-Lorem ipsum
+## Linux:
+on the project root directory, do:
+`make clean && make && make run`
+
+## Windows:
+Be sure to have installed MINGW and configurated the enviroment variables.
+After that, in any terminal you should do:
+`make clean; make; make run`
 
 [🔝 Back to top](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#summary)
 
