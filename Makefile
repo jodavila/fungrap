@@ -1,0 +1,59 @@
+# Definições gerais
+CXX        := g++
+CXXFLAGS   := -std=c++11 -Wall -Wno-unused-function -g -I ./include
+SRC        := src/main.cpp src/glad.c src/textrendering.cpp
+DEPS       := include/matrices.h include/utils.h include/dejavufont.h
+
+# Linux
+LIB_LINUX     := ./lib-linux/libglfw3.a -lrt -lm -ldl -lX11 -lpthread -lXrandr -lXinerama -lXxf86vm -lXcursor
+BIN_DIR_LINUX := bin/Linux
+TARGET_LINUX  := $(BIN_DIR_LINUX)/main
+
+# Windows (MinGW)
+
+LIB_WINDOWS     := ./lib-mingw-64/libglfw3.a -lgdi32 -lopengl32 -luser32 -lkernel32
+BIN_DIR_WINDOWS := bin/Windows
+TARGET_WINDOWS  := $(BIN_DIR_WINDOWS)/main.exe
+
+# Detecta SO
+ifeq ($(OS),Windows_NT)
+  TARGET := $(TARGET_WINDOWS)
+else
+  TARGET := $(TARGET_LINUX)
+endif
+
+.PHONY: all linux windows clean run
+
+# Alvo padrão: depende da variável TARGET
+all: $(TARGET)
+
+# Regra para Linux
+$(TARGET_LINUX): $(SRC) $(DEPS)
+	@echo ">>> Compilando para Linux em $(TARGET_LINUX)"
+	@mkdir -p $(BIN_DIR_LINUX)
+	$(CXX) $(CXXFLAGS) -o $@ $(SRC) $(LIB_LINUX)
+
+# Regra para Windows
+$(TARGET_WINDOWS): $(SRC) $(DEPS)
+	@echo ">>> Compilando para Windows em $(TARGET_WINDOWS)"
+	@mkdir -p $(BIN_DIR_WINDOWS)
+	$(CXX) $(CXXFLAGS) -o $@ $(SRC) $(LIB_WINDOWS)
+
+# Atalhos opcionais
+linux: $(TARGET_LINUX)
+windows: $(TARGET_WINDOWS)
+
+# Executa o binário correto de acordo com o SO
+run: $(TARGET)
+ifeq ($(OS),Windows_NT)
+	@echo ">>> Executando $(TARGET_WINDOWS)"
+	@cd $(BIN_DIR_WINDOWS) && ./main
+else
+	@echo ">>> Executando $(TARGET_LINUX)"
+	@cd $(BIN_DIR_LINUX) && ./main
+endif
+
+# Limpa ambos os targets
+clean:
+	@echo ">>> Removendo bins"
+	@rm -f $(TARGET_LINUX) $(TARGET_WINDOWS)
