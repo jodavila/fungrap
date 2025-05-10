@@ -1,3 +1,5 @@
+//Linear Algebra core of the whole project.
+//Very important to make projections and transformations of the objects in the scene.
 #ifndef _MATRICES_H
 #define _MATRICES_H
 

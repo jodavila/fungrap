@@ -1,4 +1,4 @@
-# Definições gerais
+# General definitions
 CXX        := g++
 CXXFLAGS   := -std=c++11 -Wall -Wno-unused-function -g -I ./include
 SRC        := src/main.cpp src/glad.c src/textrendering.cpp
@@ -15,7 +15,7 @@ LIB_WINDOWS     := ./lib-mingw-64/libglfw3.a -lgdi32 -lopengl32 -luser32 -lkerne
 BIN_DIR_WINDOWS := bin/Windows
 TARGET_WINDOWS  := $(BIN_DIR_WINDOWS)/main.exe
 
-# Detecta SO
+# Detects the OS
 ifeq ($(OS),Windows_NT)
   TARGET := $(TARGET_WINDOWS)
 else
@@ -24,26 +24,25 @@ endif
 
 .PHONY: all linux windows clean run
 
-# Alvo padrão: depende da variável TARGET
 all: $(TARGET)
 
-# Regra para Linux
+# Linux
 $(TARGET_LINUX): $(SRC) $(DEPS)
 	@echo ">>> Compilando para Linux em $(TARGET_LINUX)"
 	@mkdir -p $(BIN_DIR_LINUX)
 	$(CXX) $(CXXFLAGS) -o $@ $(SRC) $(LIB_LINUX)
 
-# Regra para Windows
+# Windows
 $(TARGET_WINDOWS): $(SRC) $(DEPS)
 	@echo ">>> Compilando para Windows em $(TARGET_WINDOWS)"
 	@mkdir -p $(BIN_DIR_WINDOWS)
 	$(CXX) $(CXXFLAGS) -o $@ $(SRC) $(LIB_WINDOWS)
 
-# Atalhos opcionais
+
 linux: $(TARGET_LINUX)
 windows: $(TARGET_WINDOWS)
 
-# Executa o binário correto de acordo com o SO
+# Run executables according to the OS (only Linux and Windows for now)
 run: $(TARGET)
 ifeq ($(OS),Windows_NT)
 	@echo ">>> Executando $(TARGET_WINDOWS)"
@@ -53,7 +52,6 @@ else
 	@cd $(BIN_DIR_LINUX) && ./main
 endif
 
-# Limpa ambos os targets
 clean:
 	@echo ">>> Removendo bins"
 	@rm -f $(TARGET_LINUX) $(TARGET_WINDOWS)
