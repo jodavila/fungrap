@@ -26,6 +26,12 @@ Release/
 # VS Code configuration
 .vscode/
 
+# Compacted files
+*.zip
+*.rar
+*.tar
+*.gz
+
 # Binary assets (ignore if assets are still being added/tested)
 #*.png
 #*.jpg
