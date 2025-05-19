@@ -1,5 +1,5 @@
-#ifndef _MATRICES_H
-#define _MATRICES_H
+#ifndef _MATRICES_HPP
+#define _MATRICES_HPP
 
 #include <cstdio>
 #include <cstdlib>
@@ -51,5 +51,5 @@ void PrintMatrixVectorProduct(glm::mat4 M, glm::vec4 v);
 
 void PrintMatrixVectorProductDivW(glm::mat4 M, glm::vec4 v);
 
-#endif // _MATRICES_H
+#endif // _MATRICES_HPP
 // vim: set spell spelllang=pt_br :
