@@ -1,18 +1,20 @@
+
+#ifndef _CAMERA_H
+#define _CAMERA_H
+
+
 //Camera related definitions
-#include "utils.h"
-#include "matrices.h"
-
-
-#pragma once
+#include "matrices.hpp"
+#include "GLFW/glfw3.h"  // Criação de janelas do sistema operacional
 
 //Theses variables are declared global to be used by the cursor Callback function
-float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
-float g_CameraDistance = 2.5f; // Distância da câmera para a origem
-glm::vec2 camera_axis = glm::vec2(1.0f, 1.0f); //invert or not the camera axis
-bool g_LeftMouseButtonPressed = false;
-bool invert_yaxis = false;
-bool invert_xaxis = false;
+extern float g_CameraTheta; // Ângulo no plano ZX em relação ao eixo Z
+extern float g_CameraPhi;   // Ângulo em relação ao eixo Y
+extern float camera_distance; // Distância da câmera para a origem
+extern glm::vec2 camera_axis; //invert or not the camera axis
+extern bool g_LeftMouseButtonPressed;
+extern bool invert_yaxis;
+extern bool invert_xaxis;
 
 
 class Camera {
@@ -25,7 +27,10 @@ public:
 
     Camera();
 
-    mat4 getProjection();
+    glm::mat4 getProjection();
+    void setCameraAxis();
+    void setCameraAngles();
+    inline glm::mat4 getView() {return Matrix_Camera_View(position, view_vector, up_vector);}
 protected:
     float nearplane = -0.1f;  // Posição do "near plane"
     float farplane = -10.0f; // Posição do "far plane"
@@ -33,31 +38,33 @@ protected:
     float screen_ratio = 1.0f;
     float width = 800.0f; // screen width
     float height = 800.0f; // screen height
-
     float yaw = 0.0f; // rotation around the Y axis
     float pitch = 0.0f; // rotation around the X axis
     float roll = 0.0f; // rotation around the Z axis
-    void setCameraAxis();
+
     inline float getScreenRatio(float width, float height) {
         return width / height;
     }
-    void setCameraAngles();
-    inline glm::mat4 getView() return Matrix_Camera_View(position, camera_view_vector, camera_up_vector);
+    
+    
 };
 
-Class Freecam : public Camera
+class Freecam : public Camera
 {
     public:
-        float speed = 1.0f;
-        void move();
+        float speed = 2.5f;
+        void move(GLFWwindow* window, double deltaTime);
         void getVectors();
 
 };
 
-Class Lookatcam : public Camera
+class Lookatcam : public Camera
 {
     public:
-        float g_CameraDistance = 2.5f; // Distância da câmera para a origem
+        float camera_distance = 2.5f; // Distância da câmera para a origem
         glm::vec4 camera_lookat_l = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         void move();
 };
+
+
+#endif // _CAMERA_H
