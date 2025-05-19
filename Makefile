@@ -1,8 +1,8 @@
 # General definitions
 CXX        := g++
 CXXFLAGS   := -std=c++11 -Wall -Wno-unused-function -g -I ./include
-SRC        := src/main.cpp src/glad.c src/textrendering.cpp
-DEPS       := include/matrices.h include/utils.h include/dejavufont.h
+SRC        := src/main.cpp src/glad.c src/textrendering.cpp src/camera.cpp src/timer.cpp src/matrices.cpp
+DEPS       := include/matrices.hpp include/utils.h include/dejavufont.h
 
 # Linux
 LIB_LINUX     := ./lib-linux/libglfw3.a -lrt -lm -ldl -lX11 -lpthread -lXrandr -lXinerama -lXxf86vm -lXcursor
@@ -24,7 +24,7 @@ endif
 
 .PHONY: all linux windows clean run
 
-all: $(TARGET)
+all: clean $(TARGET) run
 
 # Linux
 $(TARGET_LINUX): $(SRC) $(DEPS)
