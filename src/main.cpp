@@ -9,19 +9,14 @@
 #include <fstream>
 #include <sstream>
 
-// Headers das bibliotecas OpenGL
-#include <glad/glad.h>   // Criação de contexto OpenGL 3.3
-#include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
 
-// Headers da biblioteca GLM: criação de matrizes e vetores.
-#include <glm/mat4x4.hpp>
-#include <glm/vec4.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 // Headers locais, definidos na pasta "include/"
-#include "utils.h"
-#include "matrices.h"
+#include "../include/utils.h"
+#include "../include/GLFW/glfw3.h"  // Criação de janelas do sistema operacional
+#include "../include/matrices.hpp"
 #include "../include/camera.hpp"
+#include "../include/timer.hpp"
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
@@ -207,11 +202,13 @@ int main() {
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     double lastFrame = glfwGetTime();
-    Camera *freecam = new Freecam();
+    Freecam *freecam = new Freecam();
+    //Timer *timer = new Timer();
     while (!glfwWindowShouldClose(window)) {
+
         double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;       // frametime em segundos :contentReference[oaicite:1]{index=1}
-        lastFrame = currentFrame;
+        lastFrame = currentFrame; 
 
 
 
@@ -252,10 +249,10 @@ int main() {
 
         if (isFreeCamera) {
         
-            freecam->getVectors();
             freecam->setCameraAngles();
+            freecam->getVectors();
             freecam->setCameraAxis();
-            freecam->move();
+            freecam->move(window, deltaTime);
             
           
         }
@@ -277,8 +274,8 @@ int main() {
         // efetivamente aplicadas em todos os pontos.
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(freecam->getView()));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(freecam->getProjection()));
-        projection = freecam->getProjection();
-        view = freecam->getView();
+        the_projection = freecam->getProjection();
+        the_view = freecam->getView();
 
 
         // Vamos desenhar 3 instâncias (cópias) do cubo
@@ -288,6 +285,8 @@ int main() {
             // diferente em relação ao espaço global (World Coordinates). Veja
             // slides 2-14 e 184-190 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
             glm::mat4 model;
+            glm::mat4 view;
+            glm::mat4 projection;
 
             if (i == 1) {
                 // A primeira cópia do cubo não sofrerá nenhuma transformação
@@ -316,8 +315,8 @@ int main() {
                 // Armazenamos as matrizes model, view, e projection do terceiro cubo
                 // para mostrar elas na tela através da função TextRendering_ShowModelViewProjection().
                 the_model = model;
-                the_projection = projection;
-                the_view = view;
+                the_view = freecam->getView();
+                the_projection = freecam->getProjection();
             }
 
             // Enviamos a matriz "model" para a placa de vídeo (GPU). Veja o
@@ -967,7 +966,7 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    g_CameraDistance -= 0.1f * yoffset;
+    camera_distance -= 0.1f * yoffset;
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na
@@ -975,8 +974,8 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     // nunca pode ser zero. Versões anteriores deste código possuíam este bug,
     // o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
     const float verysmallnumber = std::numeric_limits<float>::epsilon();
-    if (g_CameraDistance < verysmallnumber)
-        g_CameraDistance = verysmallnumber;
+    if (camera_distance < verysmallnumber)
+        camera_distance = verysmallnumber;
 }
 
 // Definição da função que será chamada sempre que o usuário pressionar alguma
