@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TIMER_HPP
+#define TIMER_HPP
 
 #include <chrono>
 #include <iostream>
@@ -12,12 +13,12 @@ class Timer {
         
         void stopTimer();
 
-        long long getDuration() const;
-
-        long long Timer::getFrameTime() const;
+        int64_t getDuration() const;
 
     protected:
         std::chrono::steady_clock::time_point start;
         std::chrono::steady_clock::time_point end;
         
 };
+
+#endif // TIMER_HPP

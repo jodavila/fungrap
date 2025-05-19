@@ -1,25 +1,37 @@
 //Camera classes and functions
 #include "../include/camera.hpp"
+#include "../include/timer.hpp"
 
-void Camera::Camera() : position(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)), up_vector(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)) {}
+float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
+float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
+float camera_distance = 2.5f; // Distância da câmera para a origem
+glm::vec2 camera_axis = glm::vec2(1.0f, 1.0f); //invert or not the camera axis
+bool g_LeftMouseButtonPressed = false;
+bool invert_yaxis = false;
+bool invert_xaxis = false;
 
-void Camera::getProjection() {
+Camera::Camera() : position(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)), up_vector(glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)) {}
+
+glm::mat4 Camera::getProjection() {
     if (isOrthographic) {
         float t = 1.5f * camera_distance / 2.0f;
         float b = -t;
         float r = t * getScreenRatio(width, height);
         float l = -r;
+
+        return Matrix_Orthographic(l, r, b, t, nearplane, farplane);
     }
     else {
+
         return Matrix_Perspective(field_of_view, screen_ratio, nearplane, farplane);
     }
 }
 void Camera::setCameraAxis() {
     if (invert_yaxis) {
-        camera_axis.y = -1.0f;
+        camera_axis.y = 1.0f;
     }
     else {
-        camera_axis.y = 1.0f;
+        camera_axis.y = -1.0f;
     }
     if (invert_xaxis) {
         camera_axis.x = -1.0f;
@@ -29,21 +41,25 @@ void Camera::setCameraAxis() {
     }
 }
 void Camera::setCameraAngles() {
-        float yaw = sin(g_CameraPhi);
-        float roll = cos(g_CameraPhi) * cos(g_CameraTheta);
-        float pitch = cos(g_CameraPhi) * sin(g_CameraTheta);
+        yaw = sin(g_CameraPhi);
+        roll = cos(g_CameraPhi) * cos(g_CameraTheta);
+        pitch = cos(g_CameraPhi) * sin(g_CameraTheta);
 }
-void Freecam::move() {
+void Freecam::move(GLFWwindow* window, double deltaTime) {
     glm::vec4 u, v, w;
-    w = -camera_view_vector;
-    w = w / norm(w);
-    u = crossproduct(camera_up_vector, w);
-    u = u / norm(u);
-    v = crossproduct(w, u);
-    v = v / norm(v);
+    w = -view_vector;
+    if (norm(w))
+        w = w / norm(w);
 
-    Timer frameTime;
-    float deltaTime = frameTime.getFrameTime();
+    u = crossproduct(up_vector, w);
+
+    if (norm(u))
+        u = u / norm(u);
+
+    v = crossproduct(w, u);
+
+    if (norm(v))
+        v = v / norm(v);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 
@@ -66,7 +82,7 @@ void Freecam::move() {
 }
 
 void Freecam::getVectors() {
-    camera_view_vector = glm::vec4(pitch, yaw, roll, 0.0f); //Inserir aqui logica para converter de coordenadas esfericas para cartesianas camera phi e camera theta
-    camera_view_vector = camera_view_vector / norm(camera_view_vector);
-
+    view_vector = glm::vec4(pitch, yaw, roll, 0.0f); //Inserir aqui logica para converter de coordenadas esfericas para cartesianas camera phi e camera theta
+    if(norm(view_vector))
+        view_vector = view_vector / norm(view_vector);
 }
