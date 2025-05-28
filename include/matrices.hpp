@@ -11,10 +11,10 @@
 void PrintVector(glm::vec4 v);
 
 glm::mat4 Matrix(
-    float m00, float m01, float m02, float m03, // LINHA 1
-    float m10, float m11, float m12, float m13, // LINHA 2
-    float m20, float m21, float m22, float m23, // LINHA 3
-    float m30, float m31, float m32, float m33  // LINHA 4
+    float m00, float m01, float m02, float m03, // ROW 1
+    float m10, float m11, float m12, float m13, // ROW 2
+    float m20, float m21, float m22, float m23, // ROW 3
+    float m30, float m31, float m32, float m33  // ROW 4
 );
 
 glm::mat4 Matrix_Identity();

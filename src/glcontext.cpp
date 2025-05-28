@@ -1,38 +1,5 @@
 #include "../include/glcontext.hpp"
 
-void Mesh::setupMesh() {
-
-    GLsizeiptr vertexSize = sizeof(vertexData);
-    GLsizeiptr colorSize = sizeof(colorData);
-    GLsizeiptr indexSize = sizeof(indexData);
-
-
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-
-    glBindVertexArray(vao);
-
-    // Vértices
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexSize, vertexData, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, dims, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    // Cores
-    GLuint colorBuffer;
-    glGenBuffers(1, &colorBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-    glBufferData(GL_ARRAY_BUFFER, colorSize, colorData, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, colordims, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    // Índices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize, indexData, GL_STATIC_DRAW);
-
-    glBindVertexArray(0);
-}
 
 Mesh::~Mesh() {
     if (ebo) glDeleteBuffers(1, &ebo);
@@ -40,11 +7,32 @@ Mesh::~Mesh() {
     if (vao) glDeleteVertexArrays(1, &vao);
 }
 
-void Mesh::draw(int drawMode) const {
+void Mesh::setupMesh() {
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
     glBindVertexArray(vao);
-    glDrawElements(drawMode, indexCount, GL_UNSIGNED_BYTE, 0);
-    // "Desligamos" o VAO, evitando assim que operações posteriores venham a
-    // alterar o mesmo. Isso evita bugs.
+
+    // Vertices
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertexSize, vertexData.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, dims, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    // Colors
+    GLuint colorBuffer;
+    glGenBuffers(1, &colorBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+    glBufferData(GL_ARRAY_BUFFER, colorSize, colorData.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(1, colordims, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    // Indices
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize, indexData.data(), GL_STATIC_DRAW);
+
     glBindVertexArray(0);
 }
 
@@ -53,4 +41,27 @@ void VirtualScene::addFromMesh(const Mesh& mesh) {
         addObject(obj);
     }
     scene_object_arrays.back().num_objects++;
+}
+
+void VirtualScene::drawScene(GLint *render_as_black) {
+        for (const SceneObjectArraytoRender& array : scene_object_arrays) {
+
+            for (int i = 0; i < array.num_objects; ++i) {
+                const SceneObject& obj = array.objects[i];
+                if(array.objects[i].has_color) {
+                    glUniform1i(*render_as_black, false); // Disable black mode
+                } else {
+                    glUniform1i(*render_as_black, true); // Enable black mode
+                }
+                glLineWidth(obj.line_width);
+                
+                glDrawElements(
+                    obj.rendering_mode,
+                    obj.num_indices,
+                    GL_UNSIGNED_INT,
+                    (void*)obj.first_index
+                );
+            }
+        }
+        glBindVertexArray(0);
 }
