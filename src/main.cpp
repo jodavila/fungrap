@@ -8,7 +8,8 @@
 #include <limits>
 #include <fstream>
 #include <sstream>
-
+#include <iostream>
+#include <vector>
 
 
 // Headers locais, definidos na pasta "include/"
@@ -17,6 +18,8 @@
 #include "../include/matrices.hpp"
 #include "../include/camera.hpp"
 #include "../include/timer.hpp"
+#include "../include/geometrics.hpp"
+#include "../include/glcontext.hpp"
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
@@ -55,14 +58,6 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-// Definimos uma estrutura que armazenará dados necessários para renderizar
-// cada objeto da cena virtual.
-struct SceneObject {
-    const char* name;        // Nome do objeto
-    void* first_index; // Índice do primeiro vértice dentro do vetor indices[] definido em BuildTriangles()
-    int          num_indices; // Número de índices do objeto dentro do vetor indices[] definido em BuildTriangles()
-    GLenum       rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
-};
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -204,6 +199,10 @@ int main() {
     double lastFrame = glfwGetTime();
     Freecam *freecam = new Freecam();
     //Timer *timer = new Timer();
+    VirtualScene *virtual_scene = new VirtualScene();
+    Cube *cube = new Cube();
+    virtual_scene->addFromMesh(*cube);
+
     while (!glfwWindowShouldClose(window)) {
 
         double currentFrame = glfwGetTime();
@@ -339,13 +338,17 @@ int main() {
             // Veja a definição de g_VirtualScene["cube_faces"] dentro da
             // função BuildTriangles(), e veja a documentação da função
             // glDrawElements() em http://docs.gl/gl3/glDrawElements.
-            glDrawElements(
+
+            virtual_scene->DrawScene(&render_as_black_uniform);
+
+
+         /*    glDrawElements(
                 g_VirtualScene["cube_faces"].rendering_mode, // Veja slides 182-188 do documento Aula_04_Modelagem_Geometrica_3D.pdf
                 g_VirtualScene["cube_faces"].num_indices,
                 GL_UNSIGNED_INT,
                 (void*)g_VirtualScene["cube_faces"].first_index
             );
-
+ */
             // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
             glLineWidth(4.0f);
 
@@ -359,13 +362,15 @@ int main() {
             // definida acima, e portanto sofrerão as mesmas transformações
             // geométricas que o cubo. Isto é, estes eixos estarão
             // representando o sistema de coordenadas do modelo (e não o global)!
-            glDrawElements(
+
+
+            /* glDrawElements(
                 g_VirtualScene["axes"].rendering_mode,
                 g_VirtualScene["axes"].num_indices,
                 GL_UNSIGNED_INT,
                 (void*)g_VirtualScene["axes"].first_index
             );
-
+ */
             // Informamos para a placa de vídeo (GPU) que a variável booleana
             // "render_as_black" deve ser colocada como "true". Veja o arquivo
             // "shader_vertex.glsl".
@@ -376,13 +381,15 @@ int main() {
             // definição de g_VirtualScene["cube_edges"] dentro da função
             // BuildTriangles(), e veja a documentação da função
             // glDrawElements() em http://docs.gl/gl3/glDrawElements.
-            glDrawElements(
+        
+        
+            /*     glDrawElements(
                 g_VirtualScene["cube_edges"].rendering_mode,
                 g_VirtualScene["cube_edges"].num_indices,
                 GL_UNSIGNED_INT,
                 (void*)g_VirtualScene["cube_edges"].first_index
             );
-
+ */
             // Desenhamos um ponto de tamanho 15 pixels em cima do terceiro vértice
             // do terceiro cubo. Este vértice tem coordenada de modelo igual à
             // (0.5, 0.5, 0.5, 1.0).

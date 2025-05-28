@@ -1,14 +1,11 @@
 #include "../include/glcontext.hpp"
 
+void Mesh::setupMesh() {
 
-void Mesh::setupMesh(
-    const void* vertexData, GLsizeiptr vertexSize, GLint vertexAttribSize,
-    const void* colorData, GLsizeiptr colorSize, GLint colorAttribSize,
-    const void* indexData, GLsizeiptr indexSize, GLsizei indexCount
-) {
+    GLsizeiptr vertexSize = sizeof(vertexData);
+    GLsizeiptr colorSize = sizeof(colorData);
+    GLsizeiptr indexSize = sizeof(indexData);
 
-    
-    this->indexCount = indexCount;
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -19,7 +16,7 @@ void Mesh::setupMesh(
     // Vértices
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertexSize, vertexData, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, vertexAttribSize, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, dims, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
     // Cores
@@ -27,7 +24,7 @@ void Mesh::setupMesh(
     glGenBuffers(1, &colorBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
     glBufferData(GL_ARRAY_BUFFER, colorSize, colorData, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, colorAttribSize, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(1, colordims, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
     // Índices
@@ -43,10 +40,17 @@ Mesh::~Mesh() {
     if (vao) glDeleteVertexArrays(1, &vao);
 }
 
-virtual void Mesh::draw(int drawMode) const {
+void Mesh::draw(int drawMode) const {
     glBindVertexArray(vao);
     glDrawElements(drawMode, indexCount, GL_UNSIGNED_BYTE, 0);
     // "Desligamos" o VAO, evitando assim que operações posteriores venham a
     // alterar o mesmo. Isso evita bugs.
     glBindVertexArray(0);
+}
+
+void VirtualScene::addFromMesh(const Mesh& mesh) {
+    for (const SceneObject& obj : mesh.scene_objects) {
+        addObject(obj);
+    }
+    scene_object_arrays.back().num_objects++;
 }
