@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "dejavufont.h"
 
-GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Função definida em main.cpp
+GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Function defined in main.cpp
 
 const GLchar* const textvertexshader_source = ""
 "#version 330\n"
@@ -37,25 +37,25 @@ const GLchar* const textfragmentshader_source = ""
 
 void TextRendering_LoadShader(const GLchar* const shader_string, GLuint shader_id)
 {
-    // Define o código do shader, contido na string "shader_string"
+    // Sets the shader code, contained in the string "shader_string"
     glShaderSource(shader_id, 1, &shader_string, NULL);
 
-    // Compila o código do shader (em tempo de execução)
+    // Compiles the shader code (at runtime)
     glCompileShader(shader_id);
 
-    // Verificamos se ocorreu algum erro ou "warning" durante a compilação
+    // We check if any error or "warning" occurred during compilation
     GLint compiled_ok;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled_ok);
 
     GLint log_length = 0;
     glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
 
-    // Alocamos memória para guardar o log de compilação.
-    // A chamada "new" em C++ é equivalente ao "malloc()" do C.
+    // Allocate memory to store the compilation log.
+    // The "new" call in C++ is equivalent to "malloc()" in C.
     GLchar* log = new GLchar[log_length];
     glGetShaderInfoLog(shader_id, log_length, &log_length, log);
 
-    // Imprime no terminal qualquer erro ou "warning" de compilação
+    // Print any compilation error or "warning" to the terminal
     if ( log_length != 0 )
     {
         std::string  output;
@@ -78,7 +78,7 @@ void TextRendering_LoadShader(const GLchar* const shader_string, GLuint shader_i
         fprintf(stderr, "%s", output.c_str());
     }
 
-    // A chamada "delete" em C++ é equivalente ao "free()" do C
+    // The "delete" call in C++ is equivalent to "free()" in C
     delete [] log;
 }
 

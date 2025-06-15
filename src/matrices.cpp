@@ -1,160 +1,160 @@
-//Linear Algebra core of the whole project.
-//Very important to make projections and transformations of the objects in the scene.
+// Linear Algebra core of the whole project.
+// Very important to make projections and transformations of the objects in the scene.
 #include "../include/matrices.hpp"
 
 
-// Esta função Matrix() auxilia na criação de matrizes usando a biblioteca GLM.
-// Note que em OpenGL (e GLM) as matrizes são definidas como "column-major",
-// onde os elementos da matriz são armazenadas percorrendo as COLUNAS da mesma.
-// Por exemplo, seja
+// This function Matrix() helps in creating matrices using the GLM library.
+//
+// where the elements of the matrix are stored by traversing its COLUMNS.
+// For example, let
 //
 //       [a b c]
 //   M = [d e f]
 //       [g h i]
 //
-// uma matriz 3x3. Em memória, na representação "column-major" de OpenGL, essa
-// matriz é representada pelo seguinte array:
+// be a 3x3 matrix. In memory, in the "column-major" representation of OpenGL, this
+// matrix is represented by the following array:
 //
 //   M[] = {  a,d,g,    b,e,h,    c,f,i  };
 //              ^         ^         ^
 //              |         |         |
-//           coluna 1  coluna 2  coluna 3
+//           column 1  column 2  column 3
 //
-// Para conseguirmos definir matrizes através de suas LINHAS, a função Matrix()
-// computa a transposta usando os elementos passados por parâmetros.
+// To allow us to define matrices through their ROWS, the Matrix() function
+// computes the transpose using the elements passed as parameters.
 void PrintVector(glm::vec4 v);
 
 
 glm::mat4 Matrix(
-    float m00, float m01, float m02, float m03, // LINHA 1
-    float m10, float m11, float m12, float m13, // LINHA 2
-    float m20, float m21, float m22, float m23, // LINHA 3
-    float m30, float m31, float m32, float m33  // LINHA 4
+    float m00, float m01, float m02, float m03, // ROW 1
+    float m10, float m11, float m12, float m13, // ROW 2
+    float m20, float m21, float m22, float m23, // ROW 3
+    float m30, float m31, float m32, float m33  // ROW 4
 )
 {
     return glm::mat4(
-        m00, m10, m20, m30, // COLUNA 1
-        m01, m11, m21, m31, // COLUNA 2
-        m02, m12, m22, m32, // COLUNA 3
-        m03, m13, m23, m33  // COLUNA 4
+        m00, m10, m20, m30, // COLUMN 1
+        m01, m11, m21, m31, // COLUMN 2
+        m02, m12, m22, m32, // COLUMN 3
+        m03, m13, m23, m33  // COLUMN 4
     );
 }
 
-// Matriz identidade.
+// Identity matrix.
 glm::mat4 Matrix_Identity()
 {
     return Matrix(
-        1.0f , 0.0f , 0.0f , 0.0f , // LINHA 1
-        0.0f , 1.0f , 0.0f , 0.0f , // LINHA 2
-        0.0f , 0.0f , 1.0f , 0.0f , // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f   // LINHA 4
+        1.0f , 0.0f , 0.0f , 0.0f , // ROW 1
+        0.0f , 1.0f , 0.0f , 0.0f , // ROW 2
+        0.0f , 0.0f , 1.0f , 0.0f , // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f   // ROW 4
     );
 }
 
-// Matriz de translação T. Seja p=[px,py,pz,pw] um ponto e t=[tx,ty,tz,0] um
-// vetor em coordenadas homogêneas, definidos em um sistema de coordenadas
-// Cartesiano. Então, a matriz T é definida pela seguinte igualdade:
+// Translation matrix T. Let p=[px,py,pz,pw] be a point and t=[tx,ty,tz,0] a
+// vector in homogeneous coordinates, defined in a Cartesian coordinate system.
+// Then, the matrix T is defined by the following equality:
 //
 //     T*p = p+t.
 //
 glm::mat4 Matrix_Translate(float tx, float ty, float tz)
 {
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE TRANSLAÇÃO (3D) EM COORD. HOMOGÊNEAS
-        // UTILIZANDO OS PARÂMETROS tx, ty e tz
-        1.0f , 0.0f , 0.0f , tx ,  // LINHA 1
-        0.0f , 1.0f , 0.0f , ty ,  // LINHA 2
-        0.0f , 0.0f , 1.0f , tz ,  // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f    // LINHA 4
+        // FILL IN HERE THE TRANSLATION MATRIX (3D) IN HOMOGENEOUS COORDINATES
+        // USING THE PARAMETERS tx, ty, and tz
+        1.0f , 0.0f , 0.0f , tx ,  // ROW 1
+        0.0f , 1.0f , 0.0f , ty ,  // ROW 2
+        0.0f , 0.0f , 1.0f , tz ,  // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f    // ROW 4
     );
 }
 
-// Matriz S de "escalamento de um ponto" em relação à origem do sistema de
-// coordenadas. Seja p=[px,py,pz,pw] um ponto em coordenadas homogêneas.
-// Então, a matriz S é definida pela seguinte igualdade:
+// Scaling matrix S of a point relative to the origin of the coordinate system.
+// Let p=[px,py,pz,pw] be a point in homogeneous coordinates.
+// Then, the matrix S is defined by the following equality:
 //
 //     S*p = [sx*px, sy*py, sz*pz, pw].
 //
 glm::mat4 Matrix_Scale(float sx, float sy, float sz)
 {
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE ESCALAMENTO (3D) EM COORD. HOMOGÊNEAS
-        // UTILIZANDO OS PARÂMETROS sx, sy e sz
-        sx ,   0.0f , 0.0f , 0.0f ,  // LINHA 1
-        0.0f , sy ,   0.0f , 0.0f ,  // LINHA 2
-        0.0f , 0.0f , sz ,   0.0f ,  // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f    // LINHA 4
+        // FILL IN HERE THE SCALING MATRIX (3D) IN HOMOGENEOUS COORDINATES
+        // USING THE PARAMETERS sx, sy, and sz
+        sx ,   0.0f , 0.0f , 0.0f ,  // ROW 1
+        0.0f , sy ,   0.0f , 0.0f ,  // ROW 2
+        0.0f , 0.0f , sz ,   0.0f ,  // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f    // ROW 4
     );
 }
 
-// Matriz R de "rotação de um ponto" em relação à origem do sistema de
-// coordenadas e em torno do eixo X (primeiro vetor da base do sistema de
-// coordenadas). Seja p=[px,py,pz,pw] um ponto em coordenadas homogêneas.
-// Então, a matriz R é definida pela seguinte igualdade:
+// Rotation matrix R of a point relative to the origin of the coordinate system
+// and around the X axis (first vector of the coordinate system basis).
+// Let p=[px,py,pz,pw] be a point in homogeneous coordinates.
+// Then, the matrix R is defined by the following equality:
 //
 //   R*p = [ px, c*py-s*pz, s*py+c*pz, pw ];
 //
-// onde 'c' e 's' são o cosseno e o seno do ângulo de rotação, respectivamente.
+// where 'c' and 's' are the cosine and sine of the rotation angle, respectively.
 glm::mat4 Matrix_Rotate_X(float angle)
 {
     float c = cos(angle);
     float s = sin(angle);
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE ROTAÇÃO (3D) EM TORNO DO EIXO X EM COORD.
-        // HOMOGÊNEAS, UTILIZANDO OS PARÂMETROS c e s
-        1.0f , 0.0f , 0.0f , 0.0f ,  // LINHA 1
-        0.0f , c ,    -s ,   0.0f ,  // LINHA 2
-        0.0f , s ,     c ,   0.0f ,  // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f    // LINHA 4
+        // FILL IN HERE THE ROTATION MATRIX (3D) AROUND THE X AXIS IN HOMOGENEOUS
+        // COORDINATES, USING THE PARAMETERS c and s
+        1.0f , 0.0f , 0.0f , 0.0f ,  // ROW 1
+        0.0f , c ,    -s ,   0.0f ,  // ROW 2
+        0.0f , s ,     c ,   0.0f ,  // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f    // ROW 4
     );
 }
 
-// Matriz R de "rotação de um ponto" em relação à origem do sistema de
-// coordenadas e em torno do eixo Y (segundo vetor da base do sistema de
-// coordenadas). Seja p=[px,py,pz,pw] um ponto em coordenadas homogêneas.
-// Então, a matriz R é definida pela seguinte igualdade:
+// Rotation matrix R of a point relative to the origin of the coordinate system
+// and around the Y axis (second vector of the coordinate system basis).
+// Let p=[px,py,pz,pw] be a point in homogeneous coordinates.
+// Then, the matrix R is defined by the following equality:
 //
 //   R*p = [ c*px+s*pz, py, -s*px+c*pz, pw ];
 //
-// onde 'c' e 's' são o cosseno e o seno do ângulo de rotação, respectivamente.
+// where 'c' and 's' are the cosine and sine of the rotation angle, respectively.
 glm::mat4 Matrix_Rotate_Y(float angle)
 {
     float c = cos(angle);
     float s = sin(angle);
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE ROTAÇÃO (3D) EM TORNO DO EIXO Y EM COORD.
-        // HOMOGÊNEAS, UTILIZANDO OS PARÂMETROS c e s
-        c ,    0.0f , s ,    0.0f ,  // LINHA 1
-        0.0f , 1.0f , 0.0f , 0.0f ,  // LINHA 2
-        -s ,   0.0f , c ,    0.0f ,  // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f    // LINHA 4
+        // FILL IN HERE THE ROTATION MATRIX (3D) AROUND THE Y AXIS IN HOMOGENEOUS
+        // COORDINATES, USING THE PARAMETERS c and s
+        c ,    0.0f , s ,    0.0f ,  // ROW 1
+        0.0f , 1.0f , 0.0f , 0.0f ,  // ROW 2
+        -s ,   0.0f , c ,    0.0f ,  // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f    // ROW 4
     );
 }
 
-// Matriz R de "rotação de um ponto" em relação à origem do sistema de
-// coordenadas e em torno do eixo Z (terceiro vetor da base do sistema de
-// coordenadas). Seja p=[px,py,pz,pw] um ponto em coordenadas homogêneas.
-// Então, a matriz R é definida pela seguinte igualdade:
+// Rotation matrix R of a point relative to the origin of the coordinate system
+// and around the Z axis (third vector of the coordinate system basis).
+// Let p=[px,py,pz,pw] be a point in homogeneous coordinates.
+// Then, the matrix R is defined by the following equality:
 //
 //   R*p = [ c*px-s*py, s*px+c*py, pz, pw ];
 //
-// onde 'c' e 's' são o cosseno e o seno do ângulo de rotação, respectivamente.
+// where 'c' and 's' are the cosine and sine of the rotation angle, respectively.
 glm::mat4 Matrix_Rotate_Z(float angle)
 {
     float c = cos(angle);
     float s = sin(angle);
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE ROTAÇÃO (3D) EM TORNO DO EIXO Z EM COORD.
-        // HOMOGÊNEAS, UTILIZANDO OS PARÂMETROS c e s
-        c    , -s   , 0.0f , 0.0f ,  // LINHA 1
-        s    ,  c   , 0.0f , 0.0f ,  // LINHA 2
-        0.0f , 0.0f , 1.0f , 0.0f ,  // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f    // LINHA 4
+        // FILL IN HERE THE ROTATION MATRIX (3D) AROUND THE Z AXIS IN HOMOGENEOUS
+        // COORDINATES, USING THE PARAMETERS c and s
+        c    , -s   , 0.0f , 0.0f ,  // ROW 1
+        s    ,  c   , 0.0f , 0.0f ,  // ROW 2
+        0.0f , 0.0f , 1.0f , 0.0f ,  // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f    // ROW 4
     );
 }
 
-// Função que calcula a norma Euclidiana de um vetor cujos coeficientes são
-// definidos em uma base ortonormal qualquer.
+// Function that calculates the Euclidean norm of a vector whose coefficients are
+// defined in any orthonormal basis.
 float norm(glm::vec4 v)
 {
     float vx = v.x;
@@ -164,10 +164,10 @@ float norm(glm::vec4 v)
     return sqrt( vx*vx + vy*vy + vz*vz);
 }
 
-// Matriz R de "rotação de um ponto" em relação à origem do sistema de
-// coordenadas e em torno do eixo definido pelo vetor 'axis'. Esta matriz pode
-// ser definida pela fórmula de Rodrigues. Lembre-se que o vetor que define o
-// eixo de rotação deve ser normalizado!
+// Rotation matrix R of a point relative to the origin of the coordinate system
+// and around the axis defined by the vector 'axis'. This matrix can be defined
+// by Rodrigues' formula. Remember that the vector that defines the rotation axis
+// must be normalized!
 glm::mat4 Matrix_Rotate(float angle, glm::vec4 axis)
 {
     float c = cos(angle);
@@ -187,17 +187,16 @@ glm::mat4 Matrix_Rotate(float angle, glm::vec4 axis)
     float c1 = 1.0f - c;
 
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE ROTAÇÃO (3D) EM TORNO DO EIXO v EM COORD.
-        // HOMOGÊNEAS, UTILIZANDO OS PARÂMETROS vx, vy, vz, c e s (FÓRMULA DE RODRIGUES)
-        vx2*c1 + c   ,   vxvy*c1 - vz*s , vxvz*c1+vy*s , 0.0f ,  // LINHA 1
-        vxvy*c1+vz*s ,   vy2*c1+c       , vyvz*c1-vx*s , 0.0f ,  // LINHA 2
-        vxvz*c1-vy*s ,   vyvz*c1+vx*s   , vz2*c1+c     , 0.0f ,  // LINHA 3
-        0.0f         ,   0.0f           , 0.0f         , 1.0f    // LINHA 4
+        // FILL IN HERE THE ROTATION MATRIX (3D) AROUND THE AXIS v IN HOMOGENEOUS
+        // COORDINATES, USING THE PARAMETERS vx, vy, vz, c, and s (RODRIGUES' FORMULA)
+        vx2*c1 + c   ,   vxvy*c1 - vz*s , vxvz*c1+vy*s , 0.0f ,  // ROW 1
+        vxvy*c1+vz*s ,   vy2*c1+c       , vyvz*c1-vx*s , 0.0f ,  // ROW 2
+        vxvz*c1-vy*s ,   vyvz*c1+vx*s   , vz2*c1+c     , 0.0f ,  // ROW 3
+        0.0f         ,   0.0f           , 0.0f         , 1.0f    // ROW 4
     );
 }
 
-// Produto vetorial entre dois vetores u e v definidos em um sistema de
-// coordenadas ortonormal.
+// Cross product between two vectors u and v defined in an orthonormal coordinate system.
 glm::vec4 crossproduct(glm::vec4 u, glm::vec4 v)
 {
     float u1 = u.x;
@@ -208,15 +207,14 @@ glm::vec4 crossproduct(glm::vec4 u, glm::vec4 v)
     float v3 = v.z;
 
     return glm::vec4(
-        u2*v3 - u3*v2, // Primeiro coeficiente
-        u3*v1 - u1*v3, // Segundo coeficiente
-        u1*v2 - u2*v1, // Terceiro coeficiente
-        0.0f // w = 0 para vetores.
+        u2*v3 - u3*v2, // First coefficient
+        u3*v1 - u1*v3, // Second coefficient
+        u1*v2 - u2*v1, // Third coefficient
+        0.0f // w = 0 for vectors.
     );
 }
 
-// Produto escalar entre dois vetores u e v definidos em um sistema de
-// coordenadas ortonormal.
+// Dot product between two vectors u and v defined in an orthonormal coordinate system.
 float dotproduct(glm::vec4 u, glm::vec4 v)
 {
     float u1 = u.x;
@@ -230,26 +228,26 @@ float dotproduct(glm::vec4 u, glm::vec4 v)
 
     if ( u4 != 0.0f || v4 != 0.0f )
     {
-        fprintf(stderr, "ERROR: Produto escalar não definido para pontos.\n");
+        fprintf(stderr, "ERROR: Dot product not defined for points.\n");
         std::exit(EXIT_FAILURE);
     }
 
     return u1*v1 + u2*v2 + u3*v3 + u4*v4;
 }
 
-// Matriz de mudança de coordenadas para o sistema de coordenadas da Câmera.
+// Coordinate change matrix to the Camera coordinate system.
 glm::mat4 Matrix_Camera_View(glm::vec4 position_c, glm::vec4 view_vector, glm::vec4 up_vector)
 {
     
     glm::vec4 w = -view_vector;   
     glm::vec4 u = crossproduct(up_vector,w);
-    // Normalizamos os vetores u e w
+    // Normalize the vectors u and w
     float view_vector_size = norm(view_vector);
     float u_size = norm(u);
     if(view_vector_size)
-        w = w / view_vector_size; // Normalizamos o vetor w
+        w = w / view_vector_size; // Normalize vector w
     if(u_size)
-        u = u / u_size; // Normalizamos o vetor u
+        u = u / u_size; // Normalize vector u
 
     glm::vec4 v = crossproduct(w,u);
     glm::vec4 origin_o = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -268,38 +266,38 @@ glm::mat4 Matrix_Camera_View(glm::vec4 position_c, glm::vec4 view_vector, glm::v
 
 
     return Matrix(
-        // PREENCHA AQUI A MATRIZ DE MUDANÇA DE SISTEMA DE COORDENADAS (3D)
-        // PARA AS COORDENADAS DE CÂMERA (MATRIZ VIEW HOMOGÊNEA), UTILIZANDO
-        // OS PARÂMETROS ux,uy,uz, vx,vy,vz, wx,wy,wz, position_c, origin_o,
-        // e a função dotproduct().
+        // FILL IN HERE THE COORDINATE SYSTEM CHANGE MATRIX (3D)
+        // TO CAMERA COORDINATES (HOMOGENEOUS VIEW MATRIX), USING
+        // THE PARAMETERS ux,uy,uz, vx,vy,vz, wx,wy,wz, position_c, origin_o,
+        // and the dotproduct() function.
         //
-        // ATENÇÃO: O produto escalar, computado pela função dotproduct(), está
-        // definido somente para argumentos que são VETORES. Não existe produto
-        // escalar de PONTOS.
+        // ATTENTION: The dot product, computed by the dotproduct() function, is
+        // only defined for arguments that are VECTORS. There is no dot product
+        // for POINTS.
         //
-        ux ,   uy ,   uz ,   dotproduct(-u, c) ,  // LINHA 1
-        vx ,   vy ,   vz ,   dotproduct(-v, c) ,  // LINHA 2
-        wx ,   wy ,   wz ,   dotproduct(-w, c) ,  // LINHA 3
-        0.0f , 0.0f , 0.0f , 1.0f                 // LINHA 4
+        ux ,   uy ,   uz ,   dotproduct(-u, c) ,  // ROW 1
+        vx ,   vy ,   vz ,   dotproduct(-v, c) ,  // ROW 2
+        wx ,   wy ,   wz ,   dotproduct(-w, c) ,  // ROW 3
+        0.0f , 0.0f , 0.0f , 1.0f                 // ROW 4
     );
 }
 
-// Matriz de projeção paralela ortográfica
+// Orthographic parallel projection matrix
 glm::mat4 Matrix_Orthographic(float l, float r, float b, float t, float n, float f)
 {
     glm::mat4 M = Matrix(
-        // PREENCHA AQUI A MATRIZ M DE PROJEÇÃO ORTOGRÁFICA (3D) UTILIZANDO OS
-        // PARÂMETROS l,r,b,t,n,f 
-        2/(r-l) , 0.0f ,    0.0f ,    -(r+l)/(r-l) ,  // LINHA 1
-        0.0f ,    2/(t-b) , 0.0f ,    -(t+b)/(t-b) ,  // LINHA 2
-        0.0f ,    0.0f ,    2/(f-n) , -(f+n)/(f-n) ,  // LINHA 3
-        0.0f ,    0.0f ,    0.0f ,     1.0f    // LINHA 4
+        // FILL IN HERE THE ORTHOGRAPHIC PROJECTION MATRIX M (3D) USING THE
+        // PARAMETERS l,r,b,t,n,f 
+        2/(r-l) , 0.0f ,    0.0f ,    -(r+l)/(r-l) ,  // ROW 1
+        0.0f ,    2/(t-b) , 0.0f ,    -(t+b)/(t-b) ,  // ROW 2
+        0.0f ,    0.0f ,    2/(f-n) , -(f+n)/(f-n) ,  // ROW 3
+        0.0f ,    0.0f ,    0.0f ,     1.0f    // ROW 4
     );
 
     return M;
 }
 
-// Matriz de projeção perspectiva
+// Perspective projection matrix
 glm::mat4 Matrix_Perspective(float field_of_view, float aspect, float n, float f)
 {
     float t = fabs(n) * tanf(field_of_view / 2.0f);
@@ -307,55 +305,55 @@ glm::mat4 Matrix_Perspective(float field_of_view, float aspect, float n, float f
     float r = t * aspect;
     float l = -r;
     glm::mat4 P = Matrix(
-        // PREENCHA AQUI A MATRIZ P DE PROJEÇÃO PERSPECTIVA (3D) UTILIZANDO OS
-        // PARÂMETROS n e f.
-        n ,    0.0f ,    0.0f ,   0.0f ,  // LINHA 1
-        0.0f , n ,       0.0f ,   0.0f ,  // LINHA 2
-        0.0f , 0.0f ,    n+f ,    -f*n ,  // LINHA 3
-        0.0f , 0.0f ,    1.0f ,   0.0f    // LINHA 4
+        // FILL IN HERE THE PERSPECTIVE PROJECTION MATRIX P (3D) USING THE
+        // PARAMETERS n and f.
+        n ,    0.0f ,    0.0f ,   0.0f ,  // ROW 1
+        0.0f , n ,       0.0f ,   0.0f ,  // ROW 2
+        0.0f , 0.0f ,    n+f ,    -f*n ,  // ROW 3
+        0.0f , 0.0f ,    1.0f ,   0.0f    // ROW 4
     );
 
-    // A matriz M é a mesma computada acima em Matrix_Orthographic().
+    // The matrix M is the same as computed above in Matrix_Orthographic().
     glm::mat4 M = Matrix_Orthographic(l, r, b, t, n, f);
 
-    // Note que as matrizes M*P e -M*P fazem exatamente a mesma projeção
-    // perspectiva, já que o sinal de negativo não irá afetar o resultado
-    // devido à divisão por w. Por exemplo, seja q = [qx,qy,qz,1] um ponto:
+    // Note that the matrices M*P and -M*P perform exactly the same perspective
+    // projection, since the negative sign will not affect the result
+    // due to the division by w. For example, let q = [qx,qy,qz,1] be a point:
     //
     //      M*P*q = [ qx', qy', qz', w ]
     //   =(div w)=> [ qx'/w, qy'/w, qz'/w, 1 ]   Eq. (*)
     //
-    // agora com o sinal de negativo:
+    // now with the negative sign:
     //
     //     -M*P*q = [ -qx', -qy', -qz', -w ]
     //   =(div w)=> [ -qx'/-w, -qy'/-w, -qz'/-w, -w/-w ]
     //            = [ qx'/w, qy'/w, qz'/w, 1 ]   Eq. (**)
     //
-    // Note que o ponto final, após divisão por w, é igual: Eq. (*) == Eq. (**).
+    // Note that the final point, after division by w, is the same: Eq. (*) == Eq. (**).
     //
-    // Então, por que utilizamos -M*P ao invés de M*P? Pois a especificação de
-    // OpenGL define que os pontos fora do cubo unitário NDC deverão ser
-    // descartados já que não irão aparecer na tela. O teste que define se um ponto
-    // q está dentro do cubo unitário NDC pode ser expresso como:
+    // So, why do we use -M*P instead of M*P? Because the OpenGL specification
+    // defines that points outside the unit cube NDC should be discarded since
+    // they will not appear on the screen. The test that defines if a point
+    // q is inside the unit cube NDC can be expressed as:
     //
     //      -1 <= qx'/w <= 1   &&  -1 <= qy'/w <= 1   &&  -1 <= qz'/w <= 1
     //
-    // ou, de maneira equivalente SE w > 0, a placa de vídeo faz o seguinte teste
-    // ANTES da divisão por w:
+    // or, equivalently IF w > 0, the video card does the following test
+    // BEFORE the division by w:
     //
     //      -w <= qx' <= w   &&  -w <= qy' <= w   &&  -w <= qz' <= w
     //
-    // Note que o teste acima economiza uma divisão por w caso o ponto seja
-    // descartado (quando esteja fora de NDC), entretanto, este último teste só
-    // é equivalente ao primeiro teste SE E SOMENTE SE w > 0 (isto é, se w for
-    // positivo). Como este último teste é o que a placa de vídeo (GPU) irá fazer,
-    // precisamos utilizar a matriz -M*P para projeção perspectiva, de forma que
-    // w seja positivo.
+    // Note that the above test saves a division by w if the point is
+    // discarded (when it is outside NDC), however, this last test is only
+    // equivalent to the first test IF AND ONLY IF w > 0 (that is, if w is
+    // positive). Since this last test is what the video card (GPU) will do,
+    // we need to use the matrix -M*P for perspective projection, so that
+    // w is positive.
     //
     return -M*P;
 }
 
-// Função que imprime uma matriz M no terminal
+// Function that prints a matrix M to the terminal
 void PrintMatrix(glm::mat4 M)
 {
     printf("\n");
@@ -365,7 +363,7 @@ void PrintMatrix(glm::mat4 M)
     printf("[ %+0.2f  %+0.2f  %+0.2f  %+0.2f ]\n", M[0][3], M[1][3], M[2][3], M[3][3]);
 }
 
-// Função que imprime um vetor v no terminal
+// Function that prints a vector v to the terminal
 void PrintVector(glm::vec4 v)
 {
     printf("\n");
@@ -375,7 +373,7 @@ void PrintVector(glm::vec4 v)
     printf("[ %+0.2f ]\n", v[3]);
 }
 
-// Função que imprime o produto de uma matriz por um vetor no terminal
+// Function that prints the product of a matrix by a vector to the terminal
 void PrintMatrixVectorProduct(glm::mat4 M, glm::vec4 v)
 {
     auto r = M*v;
@@ -386,8 +384,8 @@ void PrintMatrixVectorProduct(glm::mat4 M, glm::vec4 v)
     printf("[ %+0.2f  %+0.2f  %+0.2f  %+0.2f ][ %+0.2f ]   [ %+0.2f ]\n", M[0][3], M[1][3], M[2][3], M[3][3], v[3], r[3]);
 }
 
-// Função que imprime o produto de uma matriz por um vetor, junto com divisão
-// por w, no terminal.
+// Function that prints the product of a matrix by a vector, along with division
+// by w, to the terminal.
 void PrintMatrixVectorProductDivW(glm::mat4 M, glm::vec4 v)
 {
     auto r = M*v;

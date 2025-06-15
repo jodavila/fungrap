@@ -2,10 +2,10 @@
 #include "../include/camera.hpp"
 #include "../include/timer.hpp"
 
-float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
-float camera_distance = 2.5f; // Distância da câmera para a origem
-glm::vec2 camera_axis = glm::vec2(1.0f, 1.0f); //invert or not the camera axis
+float g_CameraTheta = 0.0f; // Angle in the ZX plane relative to the Z axis
+float g_CameraPhi = 0.0f;   // Angle relative to the Y axis
+float camera_distance = 2.5f; // Distance from the camera to the origin
+glm::vec2 camera_axis = glm::vec2(1.0f, 1.0f); // Invert or not the camera axis
 bool g_LeftMouseButtonPressed = false;
 bool invert_yaxis = false;
 bool invert_xaxis = false;
@@ -82,7 +82,7 @@ void Freecam::move(GLFWwindow* window, double deltaTime) {
 }
 
 void Freecam::getVectors() {
-    view_vector = glm::vec4(pitch, yaw, roll, 0.0f); //Inserir aqui logica para converter de coordenadas esfericas para cartesianas camera phi e camera theta
+    view_vector = glm::vec4(pitch, yaw, roll, 0.0f); // Insert here logic to convert from spherical to cartesian coordinates using camera phi and camera theta
     if(norm(view_vector))
         view_vector = view_vector / norm(view_vector);
 }

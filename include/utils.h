@@ -2,9 +2,9 @@
 #define _UTILS_H
 
 #include <cstdio>
-// Headers das bibliotecas OpenGL
-#include "glad/glad.h"   // Criação de contexto OpenGL 3.3
-// Headers da biblioteca GLM: criação de matrizes e vetores.
+// OpenGL library headers
+#include "glad/glad.h"   // OpenGL 3.3 context creation
+// GLM library headers: creation of matrices and vectors.
 #include "glm/gtc/type_ptr.hpp"
 
 static GLenum glCheckError_(const char *file, int line)
