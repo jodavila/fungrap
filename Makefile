@@ -1,7 +1,7 @@
 # General definitions
 CXX        := g++
 CXXFLAGS   := -std=c++11 -Wall -Wno-unused-function -g -I ./include
-SRC        := src/main.cpp src/glad.c src/textrendering.cpp src/camera.cpp src/timer.cpp src/matrices.cpp src/glcontext.cpp src/geometrics.cpp
+SRC        := src/main.cpp src/glad.c src/textrendering.cpp src/camera.cpp src/timer.cpp src/matrices.cpp src/glcontext.cpp src/geometrics.cpp src/tiny_obj_loader.cpp
 DEPS       := include/matrices.hpp include/utils.h include/dejavufont.h
 
 # Linux

@@ -20,6 +20,7 @@
 #include "../include/timer.hpp"
 #include "../include/geometrics.hpp"
 #include "../include/glcontext.hpp"
+#include "../include/tiny_obj_loader.h"
 
 // Declaration of several functions used in main(). These are defined
 // right after the definition of main() in this file.
@@ -199,6 +200,10 @@ int main() {
     VirtualScene *virtual_scene = new VirtualScene();
     Cube *cube = new Cube();
     virtual_scene->addFromMesh(*cube);
+/* 
+    ObjModel spheremodel("../assets/objects/sphere.obj");
+    ComputeNormals(&spheremodel);
+    BuildTrianglesAndAddToVirtualScene(&spheremodel); */
 
     while (!glfwWindowShouldClose(window)) {
 
