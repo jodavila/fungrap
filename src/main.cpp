@@ -196,185 +196,55 @@ int main() {
 
     // We stay in an infinite loop, rendering, until the user closes the window
     double lastFrame = glfwGetTime();
-    Freecam *freecam = new Freecam();
-    VirtualScene *virtual_scene = new VirtualScene();
-    Cube *cube = new Cube();
-    virtual_scene->addFromMesh(*cube);
-/* 
-    ObjModel spheremodel("../assets/objects/sphere.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel); */
+    Freecam* freecam = new Freecam();
+    VirtualScene* virtual_scene = new VirtualScene();
+
+    Mesh* sphere = new Mesh(*virtual_scene, "../../assets/objects/sphere.obj");
 
     while (!glfwWindowShouldClose(window)) {
 
         double currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;       // frametime in seconds :contentReference[oaicite:1]{index=1}
-        lastFrame = currentFrame; 
+        deltaTime = currentFrame - lastFrame;       // frametime in seconds :contentReference[oaicite:1]{index=1},
 
+        lastFrame = currentFrame;
 
-
-        // Here we execute the rendering operations
-
-        // We set the "background" color of the framebuffer to white. This color is
-        // defined as RGBA coefficients: Red, Green, Blue, Alpha; that is:
-        // Red, Green, Blue, Alpha (transparency value).
-        // We will talk about color systems in the Lighting Models classes.
-        //
-        //           R     G     B     A
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-        // We "paint" all the pixels of the framebuffer with the color defined above,
-        // and also reset all the pixels of the Z-buffer (depth buffer).
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // We ask the GPU to use the GPU program created above (containing
-        // the vertex and fragment shaders).
         glUseProgram(g_GpuProgramID);
 
-        // Below we define the variables that effectively define the virtual camera.
-        // See slides 195-227 and 229-234 of the document Aula_08_Sistemas_de_Coordenadas.pdf.
-    
         if (isFreeCamera) {
-        
+
             freecam->setCameraAngles();
             freecam->getVectors();
             freecam->setCameraAxis();
             freecam->move(window, deltaTime);
 
         }
-       /*  else {
-            x *= r;
-            y *= r;
-            z *= r;
-            camera_position_c = glm::vec4(x, y, z, 1.0f); // Point "c", camera center
-            camera_view_vector = camera_lookat_l - camera_position_c; // "view" vector, direction the camera is facing
-        }
- */
-        // We compute the "View" matrix using the camera parameters to
-        // define the camera coordinate system. See slides 2-14, 184-190, and 236-242 of the document Aula_08_Sistemas_de_Coordenadas.pdf.
-    
-    
 
-        // We send the "view" and "projection" matrices to the video card
-        // (GPU). See the file "shader_vertex.glsl", where these are
-        // effectively applied to all points.
         glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(freecam->getView()));
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(freecam->getProjection()));
 
-        
+
         the_projection = freecam->getProjection();
         the_view = freecam->getView();
 
 
-        // We will draw 3 instances (copies) of the cube
-        for (int i = 1; i <= 3; ++i) {
-            // Each copy of the cube has an independent modeling matrix,
-            // since each copy will be in a different position (rotation, scale, ...)
-            // relative to the global space (World Coordinates). See
-            // slides 2-14 and 184-190 of the document Aula_08_Sistemas_de_Coordenadas.pdf.
-            glm::mat4 model;
+        glm::mat4 model = Matrix_Identity(); // Identity model transformation
 
-            if (i == 1) {
-                // The first copy of the cube will not undergo any modeling
-                // transformation. Therefore, its "model" matrix is the identity, and
-                // its coordinates in global space (World Coordinates) will be
-                // *exactly the same* as its coordinates in model space
-                // (Model Coordinates).
-                model = Matrix_Identity();
-            }
-            else if (i == 2) {
-                // The second copy of the cube will undergo a non-uniform scaling,
-                // followed by a rotation on the axis (1,1,1), and a translation in Z (in this order!).
-                model = Matrix_Translate(0.0f, 0.0f, -2.0f) // THIRD translation
-                    * Matrix_Rotate(3.141592f / 8.0f, glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)) // SECOND rotation
-                    * Matrix_Scale(2.0f, 0.5f, 0.5f); // FIRST scale
-            }
-            else if (i == 3) {
-                // The third copy of the cube will undergo rotations in X, Y, and Z (in this
-                // order) following the Euler angles system, and then a
-                // translation in X. See slides 106-107 of the document Aula_07_Transformacoes_Geometricas_3D.pdf.
-                model = Matrix_Translate(-2.0f, 0.0f, 0.0f) // FOURTH translation
-                    * Matrix_Rotate_Z(g_AngleZ)  // THIRD Euler Z rotation
-                    * Matrix_Rotate_Y(g_AngleY)  // SECOND Euler Y rotation
-                    * Matrix_Rotate_X(g_AngleX); // FIRST Euler X rotation
-
-                // We store the model, view, and projection matrices of the third cube
-                // to show them on the screen through the function TextRendering_ShowModelViewProjection().
-                the_model = model;
-                the_view = freecam->getView();
-                the_projection = freecam->getProjection();
-            }
-
-            // We send the "model" matrix to the video card (GPU). See the
-            // file "shader_vertex.glsl", where this is effectively
-            // applied to all points.
-            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-
-            // We inform the video card (GPU) that the boolean variable
-            // "render_as_black" should be set to "false". See the file
-            // "shader_vertex.glsl".
-            glUniform1i(render_as_black_uniform, false);
-
-            // We ask the GPU to rasterize the cube vertices pointed by the
-            // VAO as triangles, forming the cube faces. This
-            // rendering will execute the Vertex Shader defined in the file
-            // "shader_vertex.glsl", and it will use the matrices
-            // "model", "view" and "projection" defined above and already sent
-            // to the video card (GPU).
-            //
-            // See the definition of g_VirtualScene["cube_faces"] inside the
-            // BuildTriangles() function, and see the documentation of the
-            // glDrawElements() function at http://docs.gl/gl3/glDrawElements.
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(render_as_black_uniform, false);
 
 
-            //We need to make a generic VAO later, so we can use the same VAO for all meshes
-            glBindVertexArray(cube->getVAO());
-            virtual_scene->drawScene(&render_as_black_uniform);
+        virtual_scene->draw(render_as_black_uniform, sphere->getName());
 
-
-
-
-            // We draw a point of size 15 pixels on top of the third vertex
-            // of the third cube. This vertex has model coordinates equal to
-            // (0.5, 0.5, 0.5, 1.0).
-            if (i == 3) {
-                glPointSize(15.0f);
-                glDrawArrays(GL_POINTS, 3, 1);
-            }
-        }
-
-        // Now we want to draw the global XYZ axes.
-        // To do this, we set the modeling matrix to the identity.
-        // See slides 2-14 and 184-190 of the document Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 model = Matrix_Identity();
-
-        // We send the new "model" matrix to the video card (GPU). See the
-        // file "shader_vertex.glsl".
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 
-    
-
-        // We take a vertex with model coordinates (0.5, 0.5, 0.5, 1) and pass it
-        // through all coordinate systems stored in the
-        // the_model, the_view, and the_projection matrices; and write on the screen
-        // the matrices and resulting points of these transformations.
-        glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
-
-
-        /*
-        TextRendering_ShowModelViewProjection(window, the_projection, the_view, the_model, p_model);
-        TextRendering_ShowEulerAngles(window);
-        TextRendering_ShowProjection(window);
-        TextRendering_ShowFramesPerSecond(window);
-       */
 
         glfwSwapBuffers(window);
 
-        // We check with the operating system if there was any user interaction
-        // (keyboard, mouse, ...). If so, the callback functions
-        // previously defined using glfwSet*Callback() will be called
-        // by the GLFW library.
-        glfwPollEvents();
+        glfwPollEvents(); 
     }
 
     // We finalize the use of operating system resources
