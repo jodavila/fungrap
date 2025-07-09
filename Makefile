@@ -39,7 +39,7 @@ fast: CXXFLAGS += -O0 -g
 fast: $(TARGET)
 
 # Compilação otimizada (release)
-release: CXXFLAGS += -O3 -march=native -flto -DNDEBUG
+release: CXXFLAGS += -O3 -march=native
 release: $(TARGET)
 
 # Compilação final
