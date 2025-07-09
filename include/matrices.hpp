@@ -1,6 +1,14 @@
 #ifndef _MATRICES_HPP
 #define _MATRICES_HPP
 
+#ifndef M_PI
+#define M_PI    3.14159265358979323846
+#endif
+
+#ifndef M_PI_2
+#define M_PI_2  1.57079632679489661923
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -17,6 +25,13 @@ glm::mat4 Matrix(
     float m30, float m31, float m32, float m33  // ROW 4
 );
 
+glm::mat4 Matrix(
+    glm::vec4 row1,
+    glm::vec4 row2,
+    glm::vec4 row3,
+    glm::vec4 row4
+);
+
 glm::mat4 Matrix_Identity();
 
 glm::mat4 Matrix_Translate(float tx, float ty, float tz);
@@ -30,6 +45,11 @@ glm::mat4 Matrix_Rotate_Y(float angle);
 glm::mat4 Matrix_Rotate_Z(float angle);
 
 float norm(glm::vec4 v);
+inline glm::vec4 normalize(glm::vec4 v) {
+    if (norm(v))
+        v = v / norm(v);
+    return v;
+}
 
 glm::mat4 Matrix_Rotate(float angle, glm::vec4 axis);
 

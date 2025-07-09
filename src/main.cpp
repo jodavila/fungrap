@@ -10,7 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
-
+#include <glm/gtx/string_cast.hpp>
 
 // Local headers, defined in the "include/" folder
 #include "../include/utils.h"
@@ -21,6 +21,15 @@
 #include "../include/geometrics.hpp"
 #include "../include/glcontext.hpp"
 #include "../include/tiny_obj_loader.h"
+#include "../include/collisions.hpp"
+
+// Identificador que define qual objeto está sendo desenhado no momento
+#define BALL   0
+#define CLUB  1
+#define WALL  2
+#define FLOOR 3
+#define VEGETATION 4
+#define CLOUDS 5
 
 // Declaration of several functions used in main(). These are defined
 // right after the definition of main() in this file.
@@ -76,6 +85,7 @@ float g_ScreenRatio = 1.0f;
 float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
+float axis = 1.0f;
 
 // "g_LeftMouseButtonPressed = true" if the user is currently pressing the left mouse button
 // See MouseButtonCallback() function.
@@ -86,12 +96,12 @@ float g_AngleZ = 0.0f;
 // camera position is calculated inside the main() function, within the rendering loop.
 
 bool isFreeCamera = true;
+bool reset = false; // Variable to reset the camera position
 glm::vec4 position = glm::vec4(1.0f, 0.5f, 1.0f, 1.0f); // free camera position
 glm::vec4 camera_view_vector;
 glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // "up" vector fixed to point to the "sky" (global Y axis)
 float speed = 1.0f;
 double deltaTime = 0.0f;
-bool invert_axis = false;
 
 
 // Variable that controls the type of projection used: perspective or orthographic.
@@ -102,6 +112,34 @@ bool g_ShowInfoText = true;
 
 // Variables that define a GPU program (shaders). See LoadShadersFromFiles() function.
 GLuint g_GpuProgramID = 0;
+
+
+bool aimEnabled = false; // Set to true to enable aiming at the ball
+float strength = 10.0f; // Strength of the force applied to the ball
+struct TEST {
+    TEST() = default;
+    float x = 0.0f;
+    float y = 0.05f; // Slightly above the ground
+    float z = 0.8f; // Initial position of the ball
+    int dx = 0; // Change in x position
+    int dy = 0; // Change in y position
+    int dz = 0; // Change in z position
+    bool teleport = false; // Teleport flag to move the ball to a new position
+    bool reset = false; // Reset flag to reset the ball position
+    bool hit = false; // Flag to indicate if the ball has been hit
+    bool aim = false;
+    bool debug = false; // Debug flag to print debug information
+    bool manualControl = false; // Flag to enable manual control of the ball
+    inline glm::vec4 getDirection() {
+        return glm::vec4(this->dx, this->dy, this->dz, 0.0f);
+    }
+    inline void resetDirection() {
+        this->dx = 0;
+        this->dy = 0;
+        this->dz = 0;
+    }
+};
+struct TEST test;
 
 int main() {
     // We initialize the GLFW library, used to create a window of the
@@ -183,68 +221,339 @@ int main() {
     GLint model_uniform = glGetUniformLocation(g_GpuProgramID, "model"); // "model" matrix variable
     GLint view_uniform = glGetUniformLocation(g_GpuProgramID, "view"); // "view" matrix variable in shader_vertex.glsl
     GLint projection_uniform = glGetUniformLocation(g_GpuProgramID, "projection"); // "projection" matrix variable in shader_vertex.glsl
-    GLint render_as_black_uniform = glGetUniformLocation(g_GpuProgramID, "render_as_black"); // Boolean variable in shader_vertex.glsl
-
     // We enable the Z-buffer. See slides 104-116 of the document Aula_09_Projecoes.pdf.
     glEnable(GL_DEPTH_TEST);
 
     // Auxiliary variables used for calling the
     // TextRendering_ShowModelViewProjection() function, storing 4x4 matrices.
     glm::mat4 the_projection;
-    glm::mat4 the_model;
+    // glm::mat4 the_model;
     glm::mat4 the_view;
-
+    float half_pi = M_PI / 2.0f;
     // We stay in an infinite loop, rendering, until the user closes the window
     double lastFrame = glfwGetTime();
     Freecam* freecam = new Freecam();
+    freecam->setPosition(glm::vec4(3.0f, 1.0f, 0.0f, 1.0f)); // Set the camera position
+    Lookatcam* lookatcam = new Lookatcam();
+    lookatcam->setPosition(glm::vec4(5.0f, 2.0f, 0.0f, 1.0f)); // Set the camera position
     VirtualScene* virtual_scene = new VirtualScene();
+    std::vector<Mesh*> meshes;
 
-    Mesh* sphere = new Mesh(*virtual_scene, "../../assets/objects/sphere.obj");
+    float wall_height = 2.0f; // Altura da parede
+    float wall_width = 10.0f; // Largura da parede
+    float floor_length = 5.0f; // Comprimento do piso  
+    float floor_width = 5.0f; // Largura do piso
+    float roof_height = wall_height * 4 * 2;
 
+    Ball* ball = new Ball(0.02f, "../../assets/objects/golf_ball.obj");
+    Plane* floor = new Plane(floor_width, floor_length, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), "../../assets/objects/floor.obj");
+    Plane* roof = new Plane(floor_width, floor_length, glm::vec4(0.0f, roof_height, 0.0f, 1.0f), "../../assets/objects/roof.obj");
+    Cube* cloud = new Cube(15.0f, "../../assets/objects/cloud.obj", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    Cube *void_zone = new Cube(floor_width*100, 10.0f, floor_length*100,  "../../assets/objects/unit_cube.obj", glm::vec4(0.0f, -30.0f, 0.0f, 1.0f));
+
+    floor->body->setPosition(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    ball->body->setPosition(glm::vec4(0.1f, 2.0f, 0.8f, 1.0f));
+    
+   
+
+    floor->body->setRotation(glm::vec4(-half_pi, 0.0f, 0.0f, 1.0f));
+    roof->body->setRotation(glm::vec4(-half_pi, 0.0f, 0.0f, 1.0f));
+
+
+
+    Plane* wall_north = new Plane(wall_width, wall_height, "../../assets/objects/wall_north.obj");
+    Plane* wall_south = new Plane(wall_width, wall_height, "../../assets/objects/wall_south.obj");
+    Plane* wall_east = new Plane(wall_width, wall_height, "../../assets/objects/wall_east.obj");
+    Plane* wall_west = new Plane(wall_width, wall_height, "../../assets/objects/wall_west.obj");
+    wall_north->body->setPosition(glm::vec4(0.0f, -wall_height / 4, -wall_width * 4, 1.0f));
+    wall_south->body->setPosition(glm::vec4(0.0f, -wall_height / 4, wall_width * 4, 1.0f));
+    wall_east->body->setPosition(glm::vec4(wall_width * 4, -wall_height / 4, 0.0f, 1.0f));
+    wall_west->body->setPosition(glm::vec4(-wall_width * 4, -wall_height / 4, 0.0f, 1.0f));
+
+    wall_north->normal = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    wall_south->normal = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+    wall_east->normal = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+    wall_west->normal = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    floor->normal = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Normal vector for the floor
+    roof->normal = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f); // Normal vector for the roof
+
+    wall_east->body->setRotation(glm::vec4(0.0f, half_pi, 0.0f, 0.0f)); // gira X depois Y +90°
+    wall_west->body->setRotation(glm::vec4(0.0f, -half_pi, 0.0f, 0.0f)); // gira X depois Y -90°
+
+    std::vector<Plane*> walls;
+    walls.push_back(wall_north);
+    walls.push_back(wall_south);
+    walls.push_back(wall_east);
+    walls.push_back(wall_west);
+    walls.push_back(roof);
+    walls.push_back(floor);
+
+    for (auto& wall : walls) {
+        wall->setID(WALL); // Set the ID of the wall
+        wall->addToVirtualScene(*virtual_scene); // Add the walls to the virtual scene
+        if(wall->getName() != "floor")
+        wall->LoadTextureImage("../../assets/textures/sky.jpg"); // Load the wall texture
+        meshes.push_back(wall);
+    }
+    floor->LoadTextureImage("../../assets/textures/forrest_ground_01_diff_1k.jpg");
+    ball->LoadTextureImage("../../assets/textures/blue_metal_plate_diff_2k.jpg");
+    cloud->LoadTextureImage("../../assets/textures/aerial_beach_01_diff_1k.jpg");
+    
+
+    ball->setID(BALL); // Set the ID of the ball
+    //golf_club->setID(CLUB); // Set the ID of the golf club
+    floor->setID(VEGETATION); // Set the ID of the floor
+    cloud->setID(CLOUDS); // Set the ID of the cloud
+
+
+    int count_clouds = 10; // Number of clouds to create
+    std::vector<glm::mat4> cloud_transforms;
+    srand(static_cast<unsigned int>(time(0))); // Seed the random number generator
+    float max_x = floor_width * 10; // Maximum X position for the clouds
+    float max_y = roof_height; // Maximum Y position for the clouds
+    float max_z = floor_length * 10; // Maximum Z position for the clouds
+    float padding = 20.0f; // Padding to avoid clouds overlapping with walls
+    for (int i = 0; i < count_clouds; ++i) {
+
+        float x = static_cast<float>((rand() % (int)((max_x - padding) * 2)) - (max_x - padding));
+        float y = max_y - padding / 4;
+        float z = static_cast<float>((rand() % (int)((max_z - padding) * 2)) - (max_z - padding));
+        cloud->body->setPosition(glm::vec4(x, y, z, 1.0f));
+        cloud->updateTransform(); // Set the transform of the cloud
+        cloud_transforms.push_back(cloud->getTransform()); // Store the transform of the cloud
+    }
+
+    float radius = 0.6f; // Radius of the hole
+    float height = 1.5f; // Height of the hole
+    Cylinder* hole = new Cylinder(radius, height, "../../assets/objects/hole.obj");
+    hole->body->setPosition(glm::vec4(10.0f, -height + 0.01f, 0.0f, 1.0f)); // Set the position of the hole
+    meshes.push_back(floor);
+    meshes.push_back(ball);
+    meshes.push_back(hole);
+
+    ball->addToVirtualScene(*virtual_scene);
+    cloud->addToVirtualScene(*virtual_scene);
+    hole->addToVirtualScene(*virtual_scene);
+
+    ball->body->setMass(0.2f); // Set the mass of the ball
+
+
+    BezierCurve* bezier_curve = new BezierCurve();
+
+    std::cout << "Running the Mini-Golf 3D simulation...\n";
+    camera_distance = lookatcam->camera_distance;
+    float r = camera_distance;
+    glm::vec4 ball_position = ball->getCenter();
+    glm::vec4 camera_position = ball_position + glm::vec4(r,r,r,0.0f);
     while (!glfwWindowShouldClose(window)) {
-
+        for (Mesh* mesh : meshes)
+            mesh->updateTransform();
+        
         double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;       // frametime in seconds :contentReference[oaicite:1]{index=1},
 
         lastFrame = currentFrame;
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glUseProgram(g_GpuProgramID);
-
+        glm::vec4 view_vector;
         if (isFreeCamera) {
-
-            freecam->setCameraAngles();
+            axis = -1.0f; // set axis to -1.0f for free camera
+            // golf_club->controller = false; // Disable controller for the golf club when using free camera
             freecam->getVectors();
             freecam->setCameraAxis();
-            freecam->move(window, deltaTime);
+            if(!test.aim){
+                freecam->setCameraAngles();
+                freecam->move(window, deltaTime);
+            }
+            freecam->sendToGPU(view_uniform, projection_uniform); // Send the view and projection matrices to the GPU
+            the_projection = freecam->getProjection();
+            the_view = freecam->getView();
+            view_vector = freecam->getViewVector(); // Get the view vector of the camera
+        }
+        else {
+            axis = 1.0f;
+            //golf_club->controller = true;
+
+            
+
+            if(!test.aim){
+                ball_position = ball->getCenter();
+                float cam_x = r * lookatcam->pitch;
+                float cam_y = r * lookatcam->yaw;
+                float cam_z = r * lookatcam->roll;
+                camera_position = ball_position + glm::vec4(cam_x, cam_y, cam_z, 0.0f);
+            }
+
+            lookatcam->setCameraAngles(); // Atualiza pitch/yaw/roll com o mouse
+            
+            lookatcam->setPosition(camera_position);
+            lookatcam->setView(ball_position); // Câmera sempre olha para a bola
+            lookatcam->sendToGPU(view_uniform, projection_uniform);
+            the_view = lookatcam->getView();
+            the_projection = lookatcam->getProjection();
+            view_vector = lookatcam->getViewVector();
+
 
         }
 
-        glUniformMatrix4fv(view_uniform, 1, GL_FALSE, glm::value_ptr(freecam->getView()));
-        glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(freecam->getProjection()));
+        ball->testCollisionWithCube(void_zone);
+
+        ball->testCollisionWithPlane(floor); // Test collision with the floor
+        for (Plane* wall : walls) {
+            ball->testCollisionWithPlane(wall); // Test collision with the walls
+        }
+        ball->testCollisionWithCylinder(hole); // Test collision with the hole
+
+        float m = ball->body->getMass(); // Get the mass of the ball
+        glm::vec4 mg = g * m; // Calculate the gravitational force
+        ball->body->addForce(mg); // Apply gravitational force to the ball
+
+        if (test.teleport) {
+            freecam->setPosition(ball->body->getPosition()); // Set the camera position to the ball's position
+            test.teleport = false; // Reset the teleport flag
+        }
 
 
-        the_projection = freecam->getProjection();
-        the_view = freecam->getView();
+        if (test.manualControl) {
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+                test.dz = 1;
+            }
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+                test.dz = -1;
+            }
+            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+                test.dx = -1;
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+                test.dx = 1;
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) {
+                test.dy = 1;
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS) {
+                test.dy = -1;
+            }
+            
+            glm::vec4 direction = glm::vec4(test.dx, test.dy, test.dz, 0.0f); // Get the direction of the ball
+            if(!isFreeCamera){
+                if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                    test.dz = -1;
+                }
+                if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+                    test.dz = 1;
+                }
+                direction = glm::vec4(test.dx, test.dy, test.dz, 0.0f); // Get the direction of the ball
+                direction = normalize(dot(view_vector, -direction)/norm(view_vector) * view_vector); // Project the direction onto the view vector
+            }
+
+            ball->body->addForce(direction); // Apply a force to the ball based on the dx, dy, dz values
+            ball->body->applyTorque(20.0f * direction); // Apply a torque to the ball based on the dx, dy, dz values
+            test.resetDirection(); // Reset the direction of the ball
+        }
+        
+
+        float y = sin(g_CameraPhi);
+        float z = cos(g_CameraPhi) * cos(g_CameraTheta);
+        float x = cos(g_CameraPhi) * sin(g_CameraTheta);
+        glm::vec4 direction = normalize(glm::vec4(x,y,z,0.0f));
+        glm::vec4 velocity = direction * strength;
+        if(test.aim && ball->isGrounded) {
+            ball->body->resetForce();
+            ball->body->resetAcceleration();
+            ball->body->resetVelocity();
+            glm::vec4 p0 = ball->getCenter();
+            p0.y += 0.5f; // Slightly above the ground
+            bezier_curve->setTrajectoryFromVelocity(p0, velocity, g, 1.0f);
+            bezier_curve->transform = ball->getTransform(); // Get the transformation matrix of the ball
 
 
-        glm::mat4 model = Matrix_Identity(); // Identity model transformation
+        }
+        if(test.hit){
+            test.hit = false;
+            ball->body->setVelocity(velocity);
+            ball->body->setAngularAcceleration(velocity);
+            ball->isGrounded = false; // Set the grounded flag to false
+        }
+        // golf_club->animate(deltaTime, window); // Animate the golf club
+        if(test.debug){
+            bezier_curve->printInterpolatedPoints(); // Print the interpolated points of the Bezier curve
+        }
+        if(test.aim){
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(bezier_curve->transform));
+            bezier_curve->draw(g_GpuProgramID); // Draw the Bezier curve
+        }
+        for (Mesh* mesh : meshes) {
 
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(render_as_black_uniform, false);
 
+            if (test.debug) {
+                std::cout << "Mesh: " << mesh->getName() << ", Position: " << glm::to_string(mesh->body->getPosition()) << std::endl;
+                std::cout << "Mesh: " << mesh->getName() << ", Transform: " << glm::to_string(mesh->transform) << std::endl;
+                std::cout << "Mesh: " << mesh->getName() << ", Center: " << glm::to_string(mesh->getCenter()) << std::endl;
 
-        virtual_scene->draw(render_as_black_uniform, sphere->getName());
+                
+            }
 
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            if (test.reset && mesh->getName() == "Ball") {
+                std::cout << "Ball Velocity: " << glm::to_string(mesh->body->getVelocity()) << std::endl;
+                std::cout << "Ball Angular Velocity: " << glm::to_string(mesh->body->getAngularVelocity()) << std::endl;
+                std::cout << "Ball Force: " << glm::to_string(mesh->body->getForce()) << std::endl;
+                std::cout << "Ball Acceleration: " << glm::to_string(mesh->body->getAcceleration()) << std::endl;
+                std::cout << "Ball Position: " << glm::to_string(mesh->body->getPosition()) << std::endl;
+                mesh->body->setPosition(glm::vec4(0, 0, 0, 1.0f)); // Reset the position of the mesh
+                mesh->body->resetVelocity(); // Reset the velocity of the mesh
+                mesh->body->resetAngularVelocity(); // Reset the angular velocity of the mesh
+                mesh->body->resetForce(); // Reset the force of the mesh
+                mesh->body->resetAcceleration(); // Reset the acceleration of the mesh
+                test.reset = false; // Reset the reset flag
+            }
+
+            if (mesh->isTextured()) {
+                glUniform1i(glGetUniformLocation(g_GpuProgramID, "use_texture"), true);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, mesh->getTextureId());
+                glUniform1i(glGetUniformLocation(g_GpuProgramID, "texture_diffuse"), 0);
+
+                
+                glSamplerParameteri(mesh->getTextureId(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glSamplerParameteri(mesh->getTextureId(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+                if (mesh->getName() == "floor" || mesh->getName() == "roof") {
+                    glSamplerParameteri(mesh->getTextureId(), GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glSamplerParameteri(mesh->getTextureId(), GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+                }
+
+                
+            }
+            else {
+                glUniform1i(glGetUniformLocation(g_GpuProgramID, "use_texture"), false);
+            }
+            mesh->sendTransform(model_uniform); // Set the transformation matrix for the mesh
+            mesh->body->update(deltaTime); // Update the rigid body physics
+            //if (mesh->getName() != "unit_cube") 
+            virtual_scene->draw(g_GpuProgramID, mesh->getName());
+
+        }
+        test.debug = false;
+        
+        
+        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        for (glm::mat4 transform : cloud_transforms) {
+
+            cloud->setTransform(transform); // Set the transformation matrix for each cloud
+            cloud->sendTransform(model_uniform); // Set the transformation matrix for the cloud
+            virtual_scene->draw(g_GpuProgramID, cloud->getName()); // Draw the cloud    
+        }
+        glDisable(GL_BLEND);
 
 
         glfwSwapBuffers(window);
-
-        glfwPollEvents(); 
+        glfwPollEvents();
     }
 
     // We finalize the use of operating system resources
@@ -466,6 +775,9 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         // variable below to false.
         g_LeftMouseButtonPressed = false;
     }
+    if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
+        test.aim = !test.aim;
+    }
 }
 
 // Callback function called whenever the user moves the mouse cursor over
@@ -479,14 +791,14 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 
     if (!g_LeftMouseButtonPressed)
         return;
-
+    
     // Mouse cursor displacement in x and y in screen coordinates!
     float dx = xpos - g_LastCursorPosX;
     float dy = ypos - g_LastCursorPosY;
 
     // We update camera parameters with the displacements
-    g_CameraTheta -= 0.01f * dx * camera_axis.x;
-    g_CameraPhi += 0.01f * dy * camera_axis.y;
+    g_CameraTheta -= 0.01f * dx;
+    g_CameraPhi += 0.01f * dy * axis; // axis is 1.0f for lookat camera and -1.0f for free camera
 
     // In spherical coordinates, the phi angle must be between -pi/2 and +pi/2.
     float phimax = 3.141592f / 2;
@@ -532,21 +844,41 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // ======================
 
     // If the user presses the ESC key, we close the window.
+    if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+        test.reset = true;
+    }
+    if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+        test.teleport = true;
+    }
+    if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+        test.debug = true; // Set the debug flag to true
+    }
+    if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) {
+        strength += 10.0f; // Increase the strength of the hit
+        std::cout << "Strength: " << strength << std::endl; // Print the current strength to the console
+    }
+    if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) {
+        strength -= 10.0f; // Decrease the strength of the hit
+        if (strength < 0.0f) strength = 0.0f; // Ensure strength does not go negative
+        std::cout << "Strength: " << strength << std::endl; // Print the current strength to the console
+    }
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        test.manualControl = !test.manualControl; // Toggle manual control
+    }
+
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        test.hit = true; // Set the hit flag to true
+    }
+    
+
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
-    if (key == GLFW_KEY_MINUS && action == GLFW_PRESS)
-        invert_axis = !invert_axis;
+
 
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
         isFreeCamera = !isFreeCamera;
-    // The code below implements the following logic:
-    //   If press key X       then g_AngleX += delta;
-    //   If press shift+X key then g_AngleX -= delta;
-    //   If press key Y       then g_AngleY += delta;
-    //   If press shift+Y key then g_AngleY -= delta;
-    //   If press key Z       then g_AngleZ += delta;
-    //   If press shift+Z key then g_AngleZ -= delta;
+
 
     float delta = 3.141592 / 16; // 22.5 degrees, in radians.
 
@@ -561,14 +893,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
     }
 
-
-
-    // If the user presses the space key, we reset the Euler angles to zero.
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-    }
 
     // If the user presses the P key, we use perspective projection.
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
@@ -589,97 +913,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 // We define the callback for printing GLFW errors to the terminal
 void ErrorCallback(int error, const char* description) {
     fprintf(stderr, "ERROR: GLFW: %s\n", description);
-}
-
-// This function receives a vertex with model coordinates p_model and passes it
-// through all coordinate systems stored in the model,
-// view, and projection matrices; and writes on the screen the matrices and resulting
-// points of these transformations.
-void TextRendering_ShowModelViewProjection(
-    GLFWwindow* window,
-    glm::mat4 projection,
-    glm::mat4 view,
-    glm::mat4 model,
-    glm::vec4 p_model
-) {
-    if (!g_ShowInfoText)
-        return;
-
-    glm::vec4 p_world = model * p_model;
-    glm::vec4 p_camera = view * p_world;
-    glm::vec4 p_clip = projection * p_camera;
-    glm::vec4 p_ndc = p_clip;
-    if (p_clip.w)
-        p_ndc = p_clip / p_clip.w;
-
-    float pad = TextRendering_LineHeight(window);
-
-    TextRendering_PrintString(window, " Model matrix             Model     In World Coords.", -1.0f, 1.0f - pad, 1.0f);
-    TextRendering_PrintMatrixVectorProduct(window, model, p_model, -1.0f, 1.0f - 2 * pad, 1.0f);
-
-    TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f - 6 * pad, 1.0f);
-    TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f - 7 * pad, 1.0f);
-    TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f - 8 * pad, 1.0f);
-
-    TextRendering_PrintString(window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f - 9 * pad, 1.0f);
-    TextRendering_PrintMatrixVectorProduct(window, view, p_world, -1.0f, 1.0f - 10 * pad, 1.0f);
-
-    TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f - 14 * pad, 1.0f);
-    TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f - 15 * pad, 1.0f);
-    TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f - 16 * pad, 1.0f);
-
-    TextRendering_PrintString(window, " Projection matrix        Camera                    In NDC", -1.0f, 1.0f - 17 * pad, 1.0f);
-    TextRendering_PrintMatrixVectorProductDivW(window, projection, p_camera, -1.0f, 1.0f - 18 * pad, 1.0f);
-
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-
-    glm::vec2 a = glm::vec2(-1, -1);
-    glm::vec2 b = glm::vec2(+1, +1);
-    glm::vec2 p = glm::vec2(0, 0);
-    glm::vec2 q = glm::vec2(width, height);
-
-    glm::mat4 viewport_mapping = Matrix(
-        (q.x - p.x) / (b.x - a.x), 0.0f, 0.0f, (b.x * p.x - a.x * q.x) / (b.x - a.x),
-        0.0f, (q.y - p.y) / (b.y - a.y), 0.0f, (b.y * p.y - a.y * q.y) / (b.y - a.y),
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-
-    TextRendering_PrintString(window, "                                                       |  ", -1.0f, 1.0f - 22 * pad, 1.0f);
-    TextRendering_PrintString(window, "                            .--------------------------'  ", -1.0f, 1.0f - 23 * pad, 1.0f);
-    TextRendering_PrintString(window, "                            V                           ", -1.0f, 1.0f - 24 * pad, 1.0f);
-
-    TextRendering_PrintString(window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f - 25 * pad, 1.0f);
-    TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f - 26 * pad, 1.0f);
-}
-
-// We write on the screen the Euler angles defined in the global variables
-// g_AngleX, g_AngleY, and g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow* window) {
-    if (!g_ShowInfoText)
-        return;
-
-    float pad = TextRendering_LineHeight(window);
-
-    char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
-
-    TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
-}
-
-// We write on the screen which projection matrix is being used.
-void TextRendering_ShowProjection(GLFWwindow* window) {
-    if (!g_ShowInfoText)
-        return;
-
-    float lineheight = TextRendering_LineHeight(window);
-    float charwidth = TextRendering_CharWidth(window);
-
-    if (g_UsePerspectiveProjection)
-        TextRendering_PrintString(window, "Perspective", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
-    else
-        TextRendering_PrintString(window, "Orthographic", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
 }
 
 // We write on the screen the number of frames rendered per second (frames per

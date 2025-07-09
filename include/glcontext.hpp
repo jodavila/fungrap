@@ -33,7 +33,8 @@ public:
     VirtualScene() = default;
     ~VirtualScene() = default;
     inline int getNextId() { return id_count++; }
-    void draw(GLint& render_as_black, std::string name);
+    void drawAll(GLuint program_id);
+    void draw(GLuint program_id, const std::string& object_name);
 };
 
 class Callback {
@@ -44,5 +45,6 @@ public:
     virtual void onCursorPos(GLFWwindow* window, double xpos, double ypos) = 0;
     virtual void onScroll(GLFWwindow* window, double xoffset, double yoffset) = 0;
 };
+
 
 #endif // _GL_CONTEXT_HPP

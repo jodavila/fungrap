@@ -6,7 +6,7 @@
 #include "glad/glad.h"   // OpenGL 3.3 context creation
 // GLM library headers: creation of matrices and vectors.
 #include "glm/gtc/type_ptr.hpp"
-
+#include "GLFW/glfw3.h"  // Operating system window creation
 static GLenum glCheckError_(const char *file, int line)
 {
     GLenum errorCode;

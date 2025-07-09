@@ -40,6 +40,21 @@ glm::mat4 Matrix(
     );
 }
 
+glm::mat4 Matrix(
+    glm::vec4 row1,
+    glm::vec4 row2,
+    glm::vec4 row3,
+    glm::vec4 row4
+)
+{
+    return glm::mat4(
+        row1.x, row2.x, row3.x, row4.x, // COLUMN 1
+        row1.y, row2.y, row3.y, row4.y, // COLUMN 2
+        row1.z, row2.z, row3.z, row4.z, // COLUMN 3
+        row1.w, row2.w, row3.w, row4.w  // COLUMN 4
+    );
+}
+
 // Identity matrix.
 glm::mat4 Matrix_Identity()
 {

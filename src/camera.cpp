@@ -40,12 +40,14 @@ void Camera::setCameraAxis() {
         camera_axis.x = 1.0f;
     }
 }
+
 void Camera::setCameraAngles() {
-        yaw = sin(g_CameraPhi);
-        roll = cos(g_CameraPhi) * cos(g_CameraTheta);
-        pitch = cos(g_CameraPhi) * sin(g_CameraTheta);
+    yaw = sin(g_CameraPhi);
+    roll = cos(g_CameraPhi) * cos(g_CameraTheta);
+    pitch = cos(g_CameraPhi) * sin(g_CameraTheta);
 }
-void Freecam::move(GLFWwindow* window, double deltaTime) {
+
+void Camera::move(GLFWwindow* window, double deltaTime) {
     glm::vec4 u, v, w;
     w = -view_vector;
     if (norm(w))
@@ -83,6 +85,16 @@ void Freecam::move(GLFWwindow* window, double deltaTime) {
 
 void Freecam::getVectors() {
     view_vector = glm::vec4(pitch, yaw, roll, 0.0f); // Insert here logic to convert from spherical to cartesian coordinates using camera phi and camera theta
-    if(norm(view_vector))
+    if (norm(view_vector))
         view_vector = view_vector / norm(view_vector);
 }
+
+
+Lookatcam::Lookatcam(float distance, glm::vec4 lookat_l) : Camera() {
+    camera_distance = distance;
+    view_vector = lookat_l - position; // Vector "view", direction where the camera is looking
+  
+}
+
+
+
