@@ -229,7 +229,7 @@ int main() {
     glm::mat4 the_projection;
     // glm::mat4 the_model;
     glm::mat4 the_view;
-    float half_pi = M_PI / 2.0f;
+    float half_pi = (float)M_PI / 2.0f;
     // We stay in an infinite loop, rendering, until the user closes the window
     double lastFrame = glfwGetTime();
     Freecam* freecam = new Freecam();
@@ -248,7 +248,7 @@ int main() {
     Ball* ball = new Ball(0.02f, "../../assets/objects/golf_ball.obj");
     Plane* floor = new Plane(floor_width, floor_length, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), "../../assets/objects/floor.obj");
     Plane* roof = new Plane(floor_width, floor_length, glm::vec4(0.0f, roof_height, 0.0f, 1.0f), "../../assets/objects/roof.obj");
-    Cube* cloud = new Cube(15.0f, "../../assets/objects/cloud.obj", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    Cube* cloud = new Cube(10.0f, "../../assets/objects/cloud.obj", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
     Cube *void_zone = new Cube(floor_width*100, 10.0f, floor_length*100,  "../../assets/objects/unit_cube.obj", glm::vec4(0.0f, -30.0f, 0.0f, 1.0f));
 
     floor->body->setPosition(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -285,17 +285,18 @@ int main() {
     walls.push_back(wall_south);
     walls.push_back(wall_east);
     walls.push_back(wall_west);
-    walls.push_back(roof);
-    walls.push_back(floor);
 
     for (auto& wall : walls) {
         wall->setID(WALL); // Set the ID of the wall
         wall->addToVirtualScene(*virtual_scene); // Add the walls to the virtual scene
-        if(wall->getName() != "floor")
         wall->LoadTextureImage("../../assets/textures/sky.jpg"); // Load the wall texture
         meshes.push_back(wall);
     }
+    
     floor->LoadTextureImage("../../assets/textures/forrest_ground_01_diff_1k.jpg");
+
+
+    roof->LoadTextureImage("../../assets/textures/sky.jpg");
     ball->LoadTextureImage("../../assets/textures/blue_metal_plate_diff_2k.jpg");
     cloud->LoadTextureImage("../../assets/textures/aerial_beach_01_diff_1k.jpg");
     
@@ -304,6 +305,7 @@ int main() {
     //golf_club->setID(CLUB); // Set the ID of the golf club
     floor->setID(VEGETATION); // Set the ID of the floor
     cloud->setID(CLOUDS); // Set the ID of the cloud
+    roof->setID(WALL); // Set the ID of the roof
 
 
     int count_clouds = 10; // Number of clouds to create
@@ -319,6 +321,10 @@ int main() {
         float y = max_y - padding / 4;
         float z = static_cast<float>((rand() % (int)((max_z - padding) * 2)) - (max_z - padding));
         cloud->body->setPosition(glm::vec4(x, y, z, 1.0f));
+        float rot_x = static_cast<float>(rand() % 360); // Random rotation angle
+        float rot_y = static_cast<float>(rand() % 360); // Random rotation angle
+        float rot_z = static_cast<float>(rand() % 360); // Random rotation angle
+        cloud->body->setRotation(glm::vec4(x, y, z, 1.0f)); // Set the rotation of the cloud
         cloud->updateTransform(); // Set the transform of the cloud
         cloud_transforms.push_back(cloud->getTransform()); // Store the transform of the cloud
     }
@@ -328,12 +334,15 @@ int main() {
     Cylinder* hole = new Cylinder(radius, height, "../../assets/objects/hole.obj");
     hole->body->setPosition(glm::vec4(10.0f, -height + 0.01f, 0.0f, 1.0f)); // Set the position of the hole
     meshes.push_back(floor);
+    meshes.push_back(roof);
     meshes.push_back(ball);
     meshes.push_back(hole);
 
     ball->addToVirtualScene(*virtual_scene);
     cloud->addToVirtualScene(*virtual_scene);
     hole->addToVirtualScene(*virtual_scene);
+    roof->addToVirtualScene(*virtual_scene);
+    floor->addToVirtualScene(*virtual_scene);
 
     ball->body->setMass(0.2f); // Set the mass of the ball
 
@@ -345,18 +354,43 @@ int main() {
     float r = camera_distance;
     glm::vec4 ball_position = ball->getCenter();
     glm::vec4 camera_position = ball_position + glm::vec4(r,r,r,0.0f);
+
+    double accumulator = 0.0f;
+    const 
+    float dt = 1.0f / 60.0f; // Fixed time step for physics updates
+    int count = 0; // Counter for the number of physics updates
+    int max_updates = 2; // Maximum number of physics updates per frame	
     while (!glfwWindowShouldClose(window)) {
-        for (Mesh* mesh : meshes)
-            mesh->updateTransform();
-        
         double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;       // frametime in seconds :contentReference[oaicite:1]{index=1},
-
+        accumulator += deltaTime; // Accumulate the time elapsed since the last frame
         lastFrame = currentFrame;
+        while (accumulator >= dt && count < max_updates) {
+            count++;
+            
+            ball->body->update(dt); // Update the ball's physics state
+            ball->testCollisionWithPlane(floor); // Test collision with the floor
+            for (Plane* wall : walls) {
+                ball->testCollisionWithPlane(wall); // Test collision with the walls
+            }
+            
+            //Update unessential physics
+            ball->testCollisionWithCube(void_zone); // Test collision with the void zone
+            ball->testCollisionWithCylinder(hole);
+
+             // Test collision with the hole
+
+            accumulator = accumulator - dt; // Decrease the accumulated time by the fixed time step
+        }
+        count = 0; // Reset the counter for the number of physics updates
+
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(g_GpuProgramID);
+        
+        for (Mesh* mesh : meshes)
+            mesh->updateTransform();
         glm::vec4 view_vector;
         if (isFreeCamera) {
             axis = -1.0f; // set axis to -1.0f for free camera
@@ -372,6 +406,7 @@ int main() {
             the_view = freecam->getView();
             view_vector = freecam->getViewVector(); // Get the view vector of the camera
         }
+
         else {
             axis = 1.0f;
             //golf_club->controller = true;
@@ -399,12 +434,7 @@ int main() {
         }
 
         ball->testCollisionWithCube(void_zone);
-
-        ball->testCollisionWithPlane(floor); // Test collision with the floor
-        for (Plane* wall : walls) {
-            ball->testCollisionWithPlane(wall); // Test collision with the walls
-        }
-        ball->testCollisionWithCylinder(hole); // Test collision with the hole
+        ball->testCollisionWithCylinder(hole);
 
         float m = ball->body->getMass(); // Get the mass of the ball
         glm::vec4 mg = g * m; // Calculate the gravitational force
@@ -522,6 +552,7 @@ int main() {
                 if (mesh->getName() == "floor" || mesh->getName() == "roof") {
                     glSamplerParameteri(mesh->getTextureId(), GL_TEXTURE_WRAP_S, GL_REPEAT);
                     glSamplerParameteri(mesh->getTextureId(), GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
                 }
 
@@ -531,8 +562,6 @@ int main() {
                 glUniform1i(glGetUniformLocation(g_GpuProgramID, "use_texture"), false);
             }
             mesh->sendTransform(model_uniform); // Set the transformation matrix for the mesh
-            mesh->body->update(deltaTime); // Update the rigid body physics
-            //if (mesh->getName() != "unit_cube") 
             virtual_scene->draw(g_GpuProgramID, mesh->getName());
 
         }

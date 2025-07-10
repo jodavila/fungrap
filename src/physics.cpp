@@ -17,32 +17,20 @@ void RigidBody::update(float dt) {
     angular_acceleration.z = -tmp; // Swap x and z components for rotation
     angular_acceleration.y = -angular_acceleration.y; // Invert y component for correct rotation direction
 
-    resetForce(); // Reset the force after applying it
-    resetTorque(); // Reset the torque after applying it
-    
-    if (norm(force) < MIN_LIMIAR)
-        resetForce(); // Reset force if it's below the threshold
-    if (norm(torque) < MIN_LIMIAR)
-        resetTorque(); // Reset torque if it's below the threshold
-    
-    if (norm(acceleration) < MIN_LIMIAR)
-        resetAcceleration(); // Reset acceleration if it's below the threshold
+    force = {0.0f, 0.0f, 0.0f, 0.0f}; // Reset forces after applying them
+    torque = {0.0f, 0.0f, 0.0f, 0.0f}; // Reset torque after applying them
+
     velocity += acceleration * dt;
 
     velocity *= (1.0f - linear_damping * dt);
 
-    if (norm(velocity) < MIN_LIMIAR)
-        resetVelocity(); // Reset velocity if it's below the threshold
-
+ 
 
     position += velocity * dt;
 
     // Update rotation based on angular velocity
     angular_velocity += angular_acceleration * dt;
     angular_velocity *= (1.0f - angular_damping * dt); // Apply angular damping
-
-    if (glm::length(angular_velocity) < MIN_LIMIAR)
-        resetAngularVelocity(); // Reset angular velocity if it's below the threshold
 
 
         

@@ -417,8 +417,8 @@ Cylinder::Cylinder(float radius, float height, glm::vec4 position, std::string m
 
 void Ball::testCollisionWithPlane(Plane* plane) {
     // Test collision with a plane
-    collisor* col = new collisor();
-    if (col->SphereToPlane(*this, *plane)) {
+    collisor col;
+    if (col.SphereToPlane(*this, *plane)) {
         glm::vec4 normal = plane->normal; // Get the normal vector of the plane
         glm::vec4 velocity = body->getVelocity(); // Get the velocity of the ball
         glm::vec4 v_normal = glm::dot(velocity, normal) * normal;
@@ -431,14 +431,14 @@ void Ball::testCollisionWithPlane(Plane* plane) {
         isGrounded = true;
 
     }
-    delete col;
+    
 }
 
 void Ball::testCollisionWithCube(Cube* cube) {
-    collisor* col = new collisor();
+    collisor col;
 
-    if (col->SphereToCube(*this, *cube)) {
-        std::cout << "Collision with cube detected!" << std::endl;
+    if (col.SphereToCube(*this, *cube)) {
+        //std::cout << "Collision with cube detected!" << std::endl;
         body->setPosition(glm::vec4 (0.0f,3.0f,0.0f,1.0f));
         body->resetAcceleration();
         body->resetVelocity();
@@ -446,19 +446,19 @@ void Ball::testCollisionWithCube(Cube* cube) {
     }
 
 
-    delete col;
+    
 }
 void Ball::testCollisionWithCylinder(Cylinder* cylinder) {
-    collisor* col = new collisor();
+    collisor col;
     //If ball in the radius of the cylinder, turn off the normal force
-    if(col->SphereToCylinder(*this, *cylinder)) {
+    if(col.SphereToCylinder(*this, *cylinder)) {
         this->body->resetForce();
         this->body->addForce(g); //Only gravity force
-        std::cout << "Collision with radius of cylinder detected!" << std::endl;
+        //std::cout << "Collision with radius of cylinder detected!" << std::endl;
     }
-    if(col->SphereToCylinderBottom(*this, *cylinder)) {
+    if(col.SphereToCylinderBottom(*this, *cylinder)) {
         //If ball hit the bottom of the cylinder, turn on normal force
-        std::cout << "Collision with bottom of cylinder detected!" << std::endl;
+      //  std::cout << "Collision with bottom of cylinder detected!" << std::endl;
         glm::vec4 normal = glm::normalize(getCenter() - cylinder->getCenter());
         glm::vec4 velocity = body->getVelocity(); // Get the velocity of the ball
         glm::vec4 v_normal = glm::dot(velocity, normal) * normal;
