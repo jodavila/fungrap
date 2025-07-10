@@ -56,9 +56,9 @@ Ative/desative com `C`:
 
 ### Imagens das cameras:
 
-![Freecam](assets/Mini-Golf 3D 10_07_2025 00_17_24.png)
+![Freecam](assets/freecam.png)
 
-![Lookat](assets/Mini-Golf 3D 10_07_2025 00_17_50.png)
+![Lookat](assets/lookat.png)
 
 
 
