@@ -9,6 +9,14 @@ set(SOURCES
   src/main.cpp
   src/textrendering.cpp
   src/glad.c
+  src/camera.cpp
+  src/collisions.cpp
+  src/geometrics.cpp
+  src/glcontext.cpp
+  src/matrices.cpp
+  src/physics.cpp
+  src/stb_image.cpp
+  src/tiny_obj_loader.cpp
 )
 
 cmake_minimum_required(VERSION 3.5.0)
