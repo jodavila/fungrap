@@ -1,64 +1,38 @@
-
-# 💬  Members
-- Joana Davila - 00274739
-- Nicolas Chaves - 00316035
-
-# 📝 About 
-Project developed for **INF01047 - Fundamentals for Graphic Computation** class with teacher Eduardo Gastal in 2025/1. The project apply the learned curriculum in a application coded by the members along the guidelines for this task.
-
-Here, you will find all information about the project, like tools, resources and decisions made. 
-
-# Summary
-- [📚 Documentation](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#-documentation)
-- [▶ Running](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#-running)
-- [📹  Apresentation](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#-apresentation)
+Membros: Nicolas Chaves - 316035
 
 
-🗓️ 🔗🔍 ⚙️🔧🎨❗📚 
+# Mini Golf 3D - Trabalho Final de Computação Gráfica
 
----
+Projeto de um jogo 3D de minigolfe desenvolvido como trabalho final da disciplina de Computação Gráfica. Utiliza OpenGL moderno (GLFW + GLAD) e implementa os principais requisitos do trabalho: renderização com iluminação, malhas complexas, texturização, movimentação de câmera e física básica com detecção de colisões.
 
-# 📚 Documentation
+## 🎮 Funcionalidades
 
-## Project Definition: Mini Golf 3D Model
-Simple mini golf scenarios with grass, lakes, obstacles and ramps. The ball moves based on simple physics and Bézier trajectory. Collisions with walls, floor and hole entry detection. Add natural textures to the fields, lake and ball. For application of lights, in each part of the scenario. Two types of cameras: one fixed and one 'following the ball'.
-
-### Example Images as End Goal
-![image](https://github.com/user-attachments/assets/8dc17c1c-2826-4023-9e97-acf8667ab837)
-![image](https://github.com/user-attachments/assets/e1156d90-ae88-4658-a28a-4c7c36000f23)
-![image](https://github.com/user-attachments/assets/31f7389c-2f16-49aa-b56d-dc372754e817)
-
-
-## Topic 2
-Lorem ipsum
-
-### Sub Topic 2.1
-Lorem ipsum
-
-## Topic 3
-Lorem ipsum
-
-
-[🔝 Back to top](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#summary)
+- Câmera interativa freecam e lookat
+- Iluminação Phong
+- Texturização com `stb_image`
+- Detecção de colisão básica (esfera com malhas)
+- Física simplificada inspirada na Unity
+- Curvas de Bézier para trajetória inicial
+- Malhas OBJ e malhas procedurais
+- Separação entre código de renderização, lógica e física
 
 ---
 
-# ▶ Running
+## 🛠️ Compilação
 
-## Linux:
-on the project root directory, do:
-`make clean && make && make run`
+Você pode compilar o projeto via `Makefile` ou `CMake`.
 
-## Windows:
-Be sure to have installed MINGW and configurated the enviroment variables.
-After that, in any terminal you should do:
-`make clean; make; make run`
+### 📁 Organização
 
-[🔝 Back to top](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#summary)
-
---- 
-# 📹 Apresentation
-- Youtube link
-- canvas link 
-
-[🔝 Back to top](https://github.com/jodavila/fungrap/tree/main?tab=readme-ov-file#summary)
+```bash
+.
+├── include/          # Arquivos de cabeçalho (.h)
+├── src/              # Código-fonte (.cpp e .c)
+├── lib-linux/        # Bibliotecas estáticas para Linux (GLFW)
+├── lib-mingw-64/     # Bibliotecas estáticas para Windows (MinGW 64)
+├── build/obj/        # Objetos gerados (.o)
+├── bin/Linux/        # Binários gerados (Linux)
+├── bin/Windows/      # Binários gerados (Windows)
+├── Makefile          # Sistema de build com g++
+├── CMakeLists.txt    # Sistema de build alternativo com CMake
+└── README.md
