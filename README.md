@@ -18,6 +18,43 @@ Projeto de um jogo 3D de minigolfe desenvolvido como trabalho final da disciplin
 
 ---
 
+## 🎮 Como Jogar
+
+O objetivo é conduzir a bola até o buraco. A física do jogo simula velocidade, atrito, colisões e impulsão com base na orientação da câmera ou no controle manual.
+
+### Modo de Tacada Automática
+
+   - Movimente a freecam com "WASD" e a camera lookat com o mouse
+   - Use o botao direito para ativar/desativar a mira (curva de bezier)
+   - A camera sera travada e voce poderá movimentar o mouse para selecionar o ângulo do impulso.
+   - Aperte `SPACE` para aplicar o impulso na bola na direção atual da câmera.  
+
+### Modo de Controle Manual
+
+Ative/desative com `C`:
+
+- **Movimentação Direta da Bola:**  
+  - `↑` / `↓` — ajusta `dz` (eixo Z)  
+  - `←` / `→` — ajusta `dx` (eixo X)  
+  - `Shift Direito` — ajusta `dy` positivo (eixo Y)  
+  - `Ctrl Direito` — ajusta `dy` negativo  
+  - Caso camera lookat, a bola se movimentará com base no view vector
+
+### Outros Controles
+
+| Tecla                 | Função                                                   |
+|-----------------------|----------------------------------------------------------|
+| `R`                   | Reinicia a bola à posição inicial                        |
+| `T`                   | Teleporta a câmera para a posição atual da bola          |
+| `H`                   | Ativa/desativa texto informativo e modo debug            |
+| `KP +` / `KP -`       | Aumenta/diminui a força do golpe                         |
+| `F`                   | Alterna entre câmera livre e câmera look‑at              |
+| `P` / `O`             | Alterna entre projeção perspectiva (`P`) e ortográfica (`O`) |
+| `ESC`                 | Encerra o programa                                       |
+
+---
+
+
 ## 🛠️ Compilação
 
 Você pode compilar o projeto via `Makefile` ou `CMake`.
